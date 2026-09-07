@@ -41,4 +41,14 @@
 #     - script: "hello.go"
 #       runner: go run
 
-pre-commit: bunx biome check --write . && bun run typecheck
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,ts,jsx,tsx}"
+      run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+pre-push:
+  commands:
+    typecheck:
+      run: bun run typecheck
