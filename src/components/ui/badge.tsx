@@ -11,9 +11,8 @@ const badgeVariants = cva(
           "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        gold: "border-transparent bg-[#FDDA32] text-[#151B2E] font-bold shadow-xs",
-        amber:
-          "border border-[#E0B71E] bg-[#FDDA32]/15 text-[#8A6D00] dark:text-[#FDDA32]",
+        gold: "border-[#D9DEEC] bg-[#EEF2FA] text-[#184098] font-bold shadow-xs",
+        amber: "border-amber-200 bg-amber-50 text-amber-800 font-medium",
         success:
           "border-[#2E8B57]/30 bg-[#2E8B57]/15 text-[#2E8B57] font-medium",
         destructive:

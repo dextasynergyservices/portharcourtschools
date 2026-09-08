@@ -5,10 +5,8 @@ import {
   Calendar,
   Eye,
   Inbox,
-  Palette,
   Plus,
   School,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -93,7 +91,7 @@ export default async function AdminDashboardPage() {
       badge: "Content",
     },
     {
-      title: "Events & Awards",
+      title: "Events & Programmes",
       count: eventsCount,
       description: "Flagship summit & workshops",
       icon: Calendar,
@@ -119,10 +117,9 @@ export default async function AdminDashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <Badge
-                  variant="gold"
-                  className="text-xs uppercase tracking-wider"
+                  variant="outline"
+                  className="text-xs uppercase tracking-wider border-[#D9DEEC] bg-[#EEF2FA] text-[#184098]"
                 >
-                  {/* @ts-expect-error user role */}
                   {session.user.role || "super_admin"}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
@@ -137,24 +134,32 @@ export default async function AdminDashboardPage() {
               </p>
             </div>
 
-            {/* Quick Action Link */}
+            {/* Quick Action Links */}
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/style-guide">
+              <Link href="/admin/pages">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 text-xs border-[#D9DEEC] text-[#184098] hover:bg-[#EEF2FA]"
+                  className="h-9 text-xs border-[#D9DEEC] text-[#184098] hover:bg-[#EEF2FA] font-medium"
                 >
-                  <Palette className="size-4 mr-1 text-[#FDDA32]" />
-                  Style Guide
+                  Pages CMS
+                </Button>
+              </Link>
+              <Link href="/admin/media">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs border-[#D9DEEC] text-[#184098] hover:bg-[#EEF2FA] font-medium"
+                >
+                  Media Library
                 </Button>
               </Link>
               <Link href="/admin/schools/new">
                 <Button
                   size="sm"
-                  className="h-10 text-xs bg-[#184098] text-white hover:bg-[#08276B]"
+                  className="h-9 text-xs bg-[#184098] text-white hover:bg-[#08276B]"
                 >
-                  <Plus className="size-4 mr-1" />
+                  <Plus className="size-3.5 mr-1" />
                   Add School
                 </Button>
               </Link>
@@ -227,7 +232,7 @@ export default async function AdminDashboardPage() {
           {recentSubmissions.length === 0 ? (
             <Card className="border-[#D9DEEC] bg-white p-8 text-center">
               <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#EEF2FA] text-[#184098] mb-3">
-                <Sparkles className="size-6 text-[#FDDA32]" />
+                <Inbox className="size-6 text-[#184098]" />
               </div>
               <h3 className="font-heading text-sm font-bold text-[#151B2E]">
                 No Submissions Yet

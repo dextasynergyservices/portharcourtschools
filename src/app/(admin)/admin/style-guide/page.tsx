@@ -2,14 +2,13 @@
 
 import {
   ArrowLeft,
-  ExternalLink,
-  GraduationCap,
   Layers,
   Palette,
   ShieldCheck,
   SlidersHorizontal,
   Type,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default function StyleGuidePage() {
+export default function AdminStyleGuidePage() {
   const [demoInput, setDemoInput] = useState("");
 
   const brandColors = [
@@ -134,20 +133,32 @@ export default function StyleGuidePage() {
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Navigation & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#D9DEEC] pb-6">
-          <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-[#184098] text-[#FDDA32] shadow-sm">
-              <GraduationCap className="size-6" />
-            </div>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/dashboard" className="relative h-12 w-36 block">
+              <Image
+                src="/images/logo.png"
+                alt="PortHarcourtSchools Logo"
+                fill
+                className="object-contain object-left"
+                priority
+              />
+            </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-heading text-lg sm:text-xl font-black text-[#184098]">
-                  PortHarcourtSchools
-                </span>
-                <Badge variant="gold" className="text-[10px] uppercase">
+                <Badge
+                  variant="gold"
+                  className="text-[10px] uppercase font-bold"
+                >
                   Design System
                 </Badge>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase font-semibold border-[#D9DEEC] bg-[#EEF2FA] text-[#184098]"
+                >
+                  Admin Internal
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Phase 1 Foundations — Tokens, Typography, Mobile Patterns & Base
                 UI
               </p>
@@ -159,19 +170,10 @@ export default function StyleGuidePage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-10 text-xs border-[#D9DEEC]"
+                className="h-10 text-xs border-[#D9DEEC] text-[#184098] hover:bg-[#EEF2FA]"
               >
                 <ArrowLeft className="size-3.5 mr-1" />
-                Back to Admin
-              </Button>
-            </Link>
-            <Link href="/admin/login">
-              <Button
-                size="sm"
-                className="h-10 text-xs bg-[#184098] text-white hover:bg-[#08276B]"
-              >
-                <ExternalLink className="size-3.5 mr-1" />
-                Admin Login
+                Back to Dashboard
               </Button>
             </Link>
           </div>
@@ -282,7 +284,7 @@ export default function StyleGuidePage() {
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Touch targets $\ge 44$px, accessible focus rings, and responsive
+            Touch targets &ge; 44px, accessible focus rings, and responsive
             components.
           </p>
 
@@ -363,7 +365,7 @@ export default function StyleGuidePage() {
             {/* Inputs & Select Card */}
             <Card className="border-[#D9DEEC] bg-white p-5 space-y-4">
               <CardTitle className="text-sm font-bold">
-                Form Controls (Mobile-First $\ge 44$px)
+                Form Controls (Mobile-First &ge; 44px)
               </CardTitle>
               <div className="space-y-3">
                 <div>
