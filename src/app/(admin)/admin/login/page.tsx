@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertCircle, Eye, EyeOff, GraduationCap, Lock } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock } from "lucide-react";
+import Image from "next/image";
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,20 +28,25 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-[#184098] text-[#FDDA32] shadow-md shadow-[#08276B]/20">
-            <GraduationCap className="size-8" />
+          <div className="mb-3 relative h-16 w-48">
+            <Image
+              src="/images/logo.png"
+              alt="PortHarcourtSchools Logo"
+              fill
+              sizes="192px"
+              className="object-contain"
+              priority
+              loading="eager"
+            />
           </div>
-          <h1 className="font-heading text-xl sm:text-2xl font-black tracking-tight text-[#184098]">
-            PortHarcourtSchools
-          </h1>
-          <div className="mt-1 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Badge
-              variant="gold"
-              className="text-[10px] uppercase tracking-wider"
+              variant="outline"
+              className="text-[10px] uppercase tracking-wider font-bold border-[#D9DEEC] bg-[#EEF2FA] text-[#184098]"
             >
               Admin Portal
             </Badge>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground font-medium">
               Staff & Editorial
             </span>
           </div>

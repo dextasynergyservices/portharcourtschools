@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -110,6 +111,12 @@ export const contactStatusEnum = pgEnum("contact_status", [
   "archived",
 ]);
 
+export const eventRegistrationStatusEnum = pgEnum("event_registration_status", [
+  "confirmed",
+  "pending_payment",
+  "cancelled",
+]);
+
 // ==========================================
 // USERS & AUTH.JS ADAPTER TABLES
 // ==========================================
@@ -186,8 +193,8 @@ export const pages = pgTable("pages", {
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   sections: jsonb("sections")
-    .$type<Array<Record<string, unknown>>>()
-    .default([]),
+    .$type<Record<string, unknown> | Array<Record<string, unknown>>>()
+    .default({}),
   seoMeta: jsonb("seo_meta").$type<{
     title?: string;
     description?: string;
@@ -229,6 +236,25 @@ export const posts = pgTable("posts", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  posts: many(posts),
+}));
+
+export const postsRelations = relations(posts, ({ one }) => ({
+  category: one(categories, {
+    fields: [posts.categoryId],
+    references: [categories.id],
+  }),
+  author: one(users, {
+    fields: [posts.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+}));
 
 // ==========================================
 // PROGRAMMES & PARTNERS
@@ -324,6 +350,21 @@ export const schools = pgTable("schools", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+export const areasRelations = relations(areas, ({ many }) => ({
+  schools: many(schools),
+}));
+
+export const schoolsRelations = relations(schools, ({ one }) => ({
+  area: one(areas, {
+    fields: [schools.areaId],
+    references: [areas.id],
+  }),
+  creator: one(users, {
+    fields: [schools.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // ==========================================
 // EVENTS & PROGRAMMES
 // ==========================================
@@ -341,11 +382,48 @@ export const events = pgTable("events", {
   coverImage: text("cover_image"),
   type: eventTypeEnum("type").default("summit").notNull(),
   isPaid: boolean("is_paid").default(false).notNull(),
+  price: integer("price").default(0), // Amount in Naira ₦
   paymentLink: text("payment_link"),
   status: eventStatusEnum("status").default("draft").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
+
+export const eventRegistrations = pgTable("event_registrations", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventId: text("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  schoolName: text("school_name"),
+  role: text("role").default("teacher").notNull(),
+  ticketQuantity: integer("ticket_quantity").default(1).notNull(),
+  totalAmount: integer("total_amount").default(0).notNull(),
+  status: eventRegistrationStatusEnum("status")
+    .default("pending_payment")
+    .notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
+export const eventsRelations = relations(events, ({ many }) => ({
+  registrations: many(eventRegistrations),
+}));
+
+export const eventRegistrationsRelations = relations(
+  eventRegistrations,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventRegistrations.eventId],
+      references: [events.id],
+    }),
+  }),
+);
 
 // ==========================================
 // LEAD CAPTURE: NOMINATIONS & SUBMISSIONS
@@ -397,6 +475,71 @@ export const media = pgTable("media", {
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// ==========================================
+// SITE SETTINGS & PAGES CMS
+// ==========================================
+
+export type ContactEmailItem = {
+  id: string;
+  label: string;
+  email: string;
+  isPrimary: boolean;
+};
+
+export type ContactPhoneItem = {
+  id: string;
+  label: string;
+  number: string;
+  isWhatsapp: boolean;
+  isPrimary: boolean;
+};
+
+export type ContactAddressItem = {
+  id: string;
+  label: string;
+  address: string;
+  city?: string;
+  state?: string;
+  isPrimary: boolean;
+};
+
+export type SocialLinkItem = {
+  id: string;
+  platform: string;
+  url: string;
+  handle?: string;
+};
+
+export const siteSettings = pgTable("site_settings", {
+  id: text("id").primaryKey().default("default"),
+  siteName: text("site_name").default("Port Harcourt Schools").notNull(),
+  siteTagline: text("site_tagline").default(
+    "The definitive educational resource for families and schools in Port Harcourt.",
+  ),
+  siteDescription: text("site_description").default(
+    "Discover top-rated primary and secondary schools across Port Harcourt. Explore verified reviews, curriculum options, facilities, tuition estimates, and admission guidelines.",
+  ),
+  contactEmails: jsonb("contact_emails")
+    .$type<ContactEmailItem[]>()
+    .default([])
+    .notNull(),
+  contactPhones: jsonb("contact_phones")
+    .$type<ContactPhoneItem[]>()
+    .default([])
+    .notNull(),
+  contactAddresses: jsonb("contact_addresses")
+    .$type<ContactAddressItem[]>()
+    .default([])
+    .notNull(),
+  socialLinks: jsonb("social_links")
+    .$type<SocialLinkItem[]>()
+    .default([])
+    .notNull(),
+  defaultOgImage: text("default_og_image"),
+  googleAnalyticsId: text("google_analytics_id"),
+  updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+});
+
 // Infer types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -413,3 +556,7 @@ export type Programme = typeof programmes.$inferSelect;
 export type Nomination = typeof nominations.$inferSelect;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type MediaItem = typeof media.$inferSelect;
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type NewSiteSetting = typeof siteSettings.$inferInsert;
+export type PageContent = typeof pages.$inferSelect;
+export type NewPageContent = typeof pages.$inferInsert;
