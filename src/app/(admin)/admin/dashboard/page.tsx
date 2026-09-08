@@ -30,6 +30,7 @@ import {
   posts,
   schools,
 } from "@/lib/db";
+import { SubmissionDetailsDialog } from "../submissions/submission-details-dialog";
 import { DashboardShell } from "./dashboard-shell";
 
 export default async function AdminDashboardPage() {
@@ -286,15 +287,19 @@ export default async function AdminDashboardPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/admin/submissions/${sub.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          className="size-7 p-0"
-                        >
-                          <Eye className="size-3.5 text-[#184098]" />
-                        </Button>
-                      </Link>
+                      <SubmissionDetailsDialog
+                        submission={sub}
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            className="size-7 p-0 hover:bg-[#EEF2FA]"
+                            aria-label={`View submission from ${sub.name}`}
+                          >
+                            <Eye className="size-3.5 text-[#184098]" />
+                          </Button>
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
