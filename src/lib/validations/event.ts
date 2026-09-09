@@ -9,6 +9,7 @@ export const eventSchema = z.object({
   endDate: z.string().optional().nullable(),
   venue: z.string().min(3, "Venue is required"),
   coverImage: z.string().optional().nullable(),
+  isFeatured: z.boolean().default(false),
   isPaid: z.boolean().default(false),
   price: z.coerce.number().min(0, "Price must be at least 0").default(0),
   paymentLink: z.string().optional().nullable(),

@@ -57,10 +57,10 @@ export function ContactNotificationEmail({
           {/* Brand Logo Bar */}
           <Section style={logoBarStyle}>
             <Img
-              src={`${siteUrl}/images/logo.png`}
+              src={`${siteUrl}/images/brand-logo.jpg`}
               alt="PortHarcourtSchools"
-              width="170"
-              height="50"
+              width="64"
+              height="64"
               style={logoImageStyle}
             />
           </Section>

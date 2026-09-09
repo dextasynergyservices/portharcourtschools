@@ -220,6 +220,7 @@ export default async function AdminEventsPage({
               price: event.price,
               paymentLink: event.paymentLink,
               status: event.status,
+              isFeatured: event.isFeatured,
               registrationsCount: event.registrations?.length || 0,
             }))}
           />
@@ -276,6 +277,14 @@ export default async function AdminEventsPage({
                         Free
                       </Badge>
                     )}
+                    {event.isFeatured && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] uppercase font-bold border-[#C49A45]/40 bg-[#C49A45]/15 text-[#8F6B1E]"
+                      >
+                        Flagship
+                      </Badge>
+                    )}
                   </div>
 
                   <EventActionsMenu
@@ -283,6 +292,7 @@ export default async function AdminEventsPage({
                     eventTitle={event.title}
                     eventSlug={event.slug}
                     isPublished={event.status === "published"}
+                    isFeatured={event.isFeatured}
                   />
                 </div>
 

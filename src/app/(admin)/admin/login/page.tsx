@@ -28,13 +28,13 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 relative h-16 w-48">
+          <div className="mb-3 relative h-20 w-20">
             <Image
-              src="/images/logo.png"
+              src="/images/brand-logo.jpg"
               alt="PortHarcourtSchools Logo"
               fill
-              sizes="192px"
-              className="object-contain"
+              sizes="80px"
+              className="object-contain rounded-md"
               priority
               loading="eager"
             />

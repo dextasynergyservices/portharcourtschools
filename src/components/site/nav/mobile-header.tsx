@@ -14,13 +14,13 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
       {/* Brand Logo */}
       <Link href="/" className="flex items-center">
         <Image
-          src="/images/logo.png"
+          src="/images/brand-logo.jpg"
           alt="PortHarcourtSchools"
           width={140}
           height={40}
           priority
           loading="eager"
-          className="h-9 w-auto object-contain"
+          className="h-9 w-auto object-contain rounded"
         />
       </Link>
 

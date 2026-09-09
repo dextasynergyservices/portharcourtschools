@@ -35,34 +35,37 @@ export function IndentedFeature() {
       id="scholars"
       className="relative py-20 sm:py-28 bg-[#EFECE6] overflow-hidden border-b border-[#E4E0D5]"
     >
-      {/* Floating Graphic Emblem in Upper Right */}
-      <div className="absolute right-0 top-0 w-36 sm:w-64 lg:w-80 pointer-events-none opacity-40 mix-blend-multiply select-none -translate-y-6 sm:-translate-y-12">
+      {/* Floating Refined Academic Emblem in Upper Right */}
+      <div className="absolute right-0 top-0 w-44 sm:w-72 lg:w-96 pointer-events-none opacity-45 mix-blend-multiply select-none -translate-y-6 sm:-translate-y-10">
         <Image
           src="/images/classroom_champions_emblem.jpg"
           alt="Classroom Champions Emblem"
-          width={400}
-          height={400}
+          width={450}
+          height={450}
+          priority
           className="w-full h-auto"
         />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl space-y-6 text-left">
+          {/* Category Tag */}
           <FadeIn>
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
               Teacher Recognition Initiative
             </span>
           </FadeIn>
 
-          {/* Signature ICLE Hanging Indent Headline */}
+          {/* Clean Left-Aligned Headline (No hanging indent) */}
           <FadeIn delay={0.08}>
-            <h2 className="h2_featured text-[#151B2E]">
+            <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-[#151B2E] leading-tight text-left">
               A new generation of classroom champions
             </h2>
           </FadeIn>
 
+          {/* Left-Aligned Paragraph */}
           <FadeIn delay={0.16}>
-            <p className="text-base sm:text-xl text-[#35362B] leading-relaxed font-sans max-w-3xl">
+            <p className="text-base sm:text-xl text-[#35362B] leading-relaxed font-sans max-w-3xl text-left">
               PortHarcourtSchools’ Teachers Spotlight Initiative honors,
               develops, and supports outstanding educators across Rivers State.
               The program identifies excellence in curriculum delivery, provides
@@ -71,8 +74,9 @@ export function IndentedFeature() {
             </p>
           </FadeIn>
 
+          {/* CTA Buttons */}
           <FadeIn delay={0.24}>
-            <div className="pt-4 flex flex-wrap items-center gap-4">
+            <div className="pt-4 flex flex-wrap items-center gap-4 text-left">
               <Link href="/events" className="cta-button group">
                 <span>Explore Events &amp; Summit</span>
                 <ArrowDiagonal className="text-[#FDDA32]" />

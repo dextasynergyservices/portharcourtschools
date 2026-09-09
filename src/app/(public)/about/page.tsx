@@ -103,7 +103,7 @@ export default async function AboutPage() {
       "@type": "EducationalOrganization",
       name: "PortHarcourtSchools / EdFocus Africa",
       url: siteUrl,
-      logo: `${siteUrl}/images/logo.png`,
+      logo: `${siteUrl}/images/brand-logo.jpg`,
     },
   };
 

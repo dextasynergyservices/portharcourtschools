@@ -1,11 +1,14 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { ClosingCta } from "@/components/site/home/closing-cta";
 import { CommunityPartnersTeaser } from "@/components/site/home/community-partners-teaser";
 import { DirectoryBanner } from "@/components/site/home/directory-banner";
 import { FeaturedEventBanner } from "@/components/site/home/featured-event-banner";
 import { HeroSection } from "@/components/site/home/hero-section";
-import { IndentedFeature } from "@/components/site/home/indented-feature";
+import {
+  type MarqueePartnerItem,
+  PartnersMarquee,
+} from "@/components/site/home/partners-marquee";
 import { ProgramScroller } from "@/components/site/home/program-scroller";
 import {
   type LivePostSummary,
@@ -15,7 +18,7 @@ import { SpotlightsScroller } from "@/components/site/home/spotlights-scroller";
 import { WhatWeDoPillars } from "@/components/site/home/what-we-do-pillars";
 import { WhoWeServe } from "@/components/site/home/who-we-serve";
 import { getOrSetCache } from "@/lib/cache";
-import { db, posts } from "@/lib/db";
+import { db, partners, posts } from "@/lib/db";
 
 export const metadata: Metadata = {
   title:
@@ -50,13 +53,35 @@ export default async function HomePage() {
           limit: 6,
         });
       },
-      1800,
+      300,
     );
   } catch (err) {
-    console.warn(
-      "Could not query live posts on homepage, using defaults:",
-      err,
+    console.warn("Could not fetch homepage live posts:", err);
+  }
+
+  let partnersList: MarqueePartnerItem[] = [];
+  try {
+    partnersList = await getOrSetCache<MarqueePartnerItem[]>(
+      "homepage:partners",
+      ["partners", "homepage"],
+      async () => {
+        return db.query.partners.findMany({
+          where: eq(partners.isActive, true),
+          orderBy: [asc(partners.order), desc(partners.createdAt)],
+          columns: {
+            id: true,
+            name: true,
+            logo: true,
+            website: true,
+            tier: true,
+            description: true,
+          },
+        });
+      },
+      300,
     );
+  } catch (err) {
+    console.warn("Could not fetch homepage partners:", err);
   }
 
   const jsonLd = {
@@ -84,7 +109,7 @@ export default async function HomePage() {
         "@id": `${siteUrl}/#organization`,
         name: "PortHarcourtSchools",
         url: siteUrl,
-        logo: `${siteUrl}/images/logo.png`,
+        logo: `${siteUrl}/images/brand-logo.jpg`,
         description:
           "Media, programmes and community platform building a stronger education ecosystem across Port Harcourt and Rivers State.",
         sameAs: [
@@ -199,8 +224,8 @@ export default async function HomePage() {
       {/* 6. FULL-BLEED DIRECTORY BANNER (#map_cta) */}
       <DirectoryBanner />
 
-      {/* 7. INDENTED FEATURE BLOCK (Teachers Spotlight / Classroom Champions) */}
-      <IndentedFeature />
+      {/* 7. PARTNERS MARQUEE (Right to Left Animated Logo Ticker) */}
+      <PartnersMarquee partners={partnersList} />
 
       {/* 8. SPOTLIGHTS SECTION (Primers with sideways scrolling on mobile) */}
       <SpotlightsScroller />

@@ -181,89 +181,80 @@ export function SectionImageUpload({
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <Label className="text-sm font-semibold text-foreground flex items-center gap-1">
-            {label}
-            {required && <span className="text-destructive">*</span>}
+    <div className="space-y-3 rounded-lg border border-[#D9DEEC] bg-[#F8FAFC] p-3.5">
+      {/* Header with Title and Media Library Action */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-xs font-bold text-[#151B2E] flex items-center gap-1.5">
+            <span>{label}</span>
+            {required && <span className="text-red-500 text-xs">*</span>}
           </Label>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {description}
-            </p>
-          )}
+
+          {/* Choose from Media Library Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDrawerOpen(true)}
+            className="h-7 px-2.5 text-[11px] font-semibold border-[#D9DEEC] text-[#184098] bg-white hover:bg-[#EEF2FA] shrink-0 gap-1.5 shadow-2xs"
+          >
+            <FolderOpen className="size-3.5 text-[#184098]" />
+            <span>Media Library</span>
+          </Button>
         </div>
 
-        {/* Choose from Library Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setIsDrawerOpen(true)}
-          className="h-8 gap-1.5 text-xs"
-        >
-          <FolderOpen className="size-3.5" />
-          Choose from Library
-        </Button>
+        {description && (
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {description}
+          </p>
+        )}
       </div>
 
-      {/* R2 Not Configured Notice (Graceful non-blocking fallback) */}
+      {/* R2 Not Configured Notice (Clean non-blocking fallback with manual URL) */}
       {isR2Ready === false && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold">
-                Cloudflare R2 Direct Uploads Not Configured
-              </p>
-              <p className="text-muted-foreground">
-                Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and
-                R2_BUCKET_NAME in your environment to enable drag-and-drop
-                uploads. You can still enter an image URL manually below.
-              </p>
-            </div>
+        <div className="rounded-md border border-[#D9DEEC] bg-white p-2.5 space-y-1.5 text-xs shadow-2xs">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-bold text-[#151B2E]">
+              Or enter Image URL:
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              External or static path
+            </span>
           </div>
-          <div className="mt-2.5">
-            <Label className="text-[11px] font-medium text-foreground">
-              Direct Image URL
-            </Label>
-            <Input
-              placeholder="https://..."
-              value={manualUrl}
-              onChange={(e) => handleManualUrlChange(e.target.value)}
-              className="mt-1 h-8 text-xs bg-background"
-            />
-          </div>
+          <Input
+            placeholder="https://... or /images/..."
+            value={manualUrl}
+            onChange={(e) => handleManualUrlChange(e.target.value)}
+            className="h-8 text-xs border-[#D9DEEC] bg-[#FAFBFF] focus:bg-white"
+          />
         </div>
       )}
 
       {/* Main Dropzone / Preview Area */}
       {value ? (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div
-            className={`relative ${aspectClass} w-full overflow-hidden rounded-md border border-border bg-muted/40`}
+            className={`relative ${aspectClass} w-full overflow-hidden rounded-md border border-[#D9DEEC] bg-white shadow-2xs`}
           >
             <Image
               src={value}
-              alt={currentAlt || "Section preview"}
+              alt={currentAlt || "Cover preview"}
               fill
               unoptimized
               className="object-cover"
             />
-            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-xs p-1 rounded-md">
+            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/65 backdrop-blur-xs p-1 rounded-md shadow-sm">
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isR2Ready === false}
-                className="text-xs px-2 py-1 bg-white/90 text-neutral-900 hover:bg-white rounded font-medium transition-colors disabled:opacity-50"
+                onClick={() => setIsDrawerOpen(true)}
+                className="text-[11px] px-2 py-0.5 bg-white text-neutral-900 hover:bg-neutral-100 rounded font-bold transition-colors shadow-2xs"
               >
-                Replace
+                Change
               </button>
               <button
                 type="button"
                 onClick={handleRemove}
-                className="p-1 text-white hover:text-destructive transition-colors rounded"
+                className="p-1 text-white hover:text-red-400 transition-colors rounded"
                 title="Remove image"
               >
                 <Trash2 className="size-3.5" />
@@ -271,22 +262,21 @@ export function SectionImageUpload({
             </div>
           </div>
 
-          {/* Required Alt Text */}
+          {/* Alt Text Input */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <Label className="text-xs font-medium text-foreground flex items-center gap-1">
+              <Label className="text-[11px] font-bold text-[#151B2E]">
                 Image Alt Text
-                <span className="text-destructive">*</span>
               </Label>
               <span className="text-[10px] text-muted-foreground">
-                Crucial for accessibility & SEO
+                For accessibility &amp; SEO
               </span>
             </div>
             <Input
-              placeholder="Describe this image for screen readers (e.g. Students in biology lab)..."
+              placeholder="Short description of this image..."
               value={currentAlt}
               onChange={(e) => handleAltChange(e.target.value)}
-              className="h-8 text-xs"
+              className="h-8 text-xs border-[#D9DEEC] bg-white"
             />
           </div>
         </div>
@@ -310,36 +300,39 @@ export function SectionImageUpload({
               fileInputRef.current?.click();
             }
           }}
-          className={`relative ${aspectClass} w-full flex flex-col items-center justify-center rounded-md border-2 border-dashed border-border p-6 text-center transition-colors ${
+          className={`relative ${aspectClass} w-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 text-center transition-all ${
             isR2Ready === false
-              ? "opacity-60 cursor-not-allowed bg-muted/10"
-              : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"
+              ? "border-[#D9DEEC] bg-white cursor-pointer hover:border-[#184098]/50"
+              : "border-[#D9DEEC] bg-white hover:border-[#184098] hover:bg-[#EEF2FA]/20 cursor-pointer shadow-2xs"
           }`}
         >
           {isUploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="size-7 animate-spin text-primary" />
-              <p className="text-xs font-medium text-foreground">
+            <div className="flex flex-col items-center gap-2 px-4">
+              <Loader2 className="size-6 animate-spin text-[#184098]" />
+              <p className="text-xs font-bold text-[#151B2E]">
                 Uploading directly to Cloudflare R2...
               </p>
-              <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="w-36 h-1.5 bg-[#EEF2FA] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-primary transition-all duration-300"
+                  className="h-full bg-[#184098] transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <div className="size-10 rounded-full bg-muted flex items-center justify-center text-foreground">
-                <UploadCloud className="size-5" />
+            <div className="flex flex-col items-center gap-2 text-muted-foreground px-2">
+              <div className="size-9 rounded-full bg-[#EEF2FA] border border-[#D9DEEC] flex items-center justify-center text-[#184098]">
+                <UploadCloud className="size-4.5" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-foreground">
-                  Drag and drop an image, or click to browse
+                <p className="text-xs font-bold text-[#151B2E]">
+                  Drag &amp; drop, or{" "}
+                  <span className="text-[#184098] underline underline-offset-2">
+                    browse file
+                  </span>
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Direct to Cloudflare R2 · JPG, PNG, WebP up to 10MB
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  16:9 Master · JPG, PNG, WebP up to 10MB
                 </p>
               </div>
             </div>
@@ -348,7 +341,7 @@ export function SectionImageUpload({
       )}
 
       {errorMessage && (
-        <p className="text-xs text-destructive font-medium flex items-center gap-1 mt-1">
+        <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
           <AlertCircle className="size-3.5 shrink-0" />
           {errorMessage}
         </p>
