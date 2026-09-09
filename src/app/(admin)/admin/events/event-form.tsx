@@ -11,13 +11,14 @@ import {
   MapPin,
   Save,
   Send,
+  Sparkles,
   XCircle,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,7 @@ interface EventFormProps {
     endDate?: Date | null;
     venue: string;
     coverImage?: string | null;
+    isFeatured?: boolean;
     isPaid: boolean;
     price?: number | null;
     paymentLink?: string | null;
@@ -91,6 +93,9 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
   );
   const [venue, setVenue] = useState(initialData?.venue || "");
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || "");
+  const [isFeatured, setIsFeatured] = useState(
+    initialData?.isFeatured || false,
+  );
   const [isPaid, setIsPaid] = useState(initialData?.isPaid || false);
   const [price, setPrice] = useState(
     initialData?.price !== undefined && initialData?.price !== null
@@ -167,6 +172,7 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
     formData.set("endDate", endDate);
     formData.set("venue", venue);
     formData.set("coverImage", coverImage);
+    formData.set("isFeatured", isFeatured ? "true" : "false");
     formData.set("isPaid", isPaid ? "true" : "false");
     formData.set("price", price);
     formData.set("paymentLink", paymentLink);
@@ -577,6 +583,44 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
             </div>
           </Card>
 
+          {/* Flagship Spotlight Control */}
+          <Card className="border-[#D9DEEC] bg-white p-5 rounded-lg space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 text-[#C49A45]" />
+                <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#151B2E]">
+                  Flagship Spotlight
+                </CardTitle>
+              </div>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isFeatured
+                    ? "bg-[#C49A45]/15 text-[#8F6B1E] border border-[#C49A45]/30"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {isFeatured ? "Active Flagship" : "Standard"}
+              </span>
+            </div>
+            <p className="text-xs text-[#555E77] leading-relaxed">
+              Mark this event as a flagship spotlight. It will appear
+              prominently in the Featured Flagship section at the top of the
+              public Events page.
+            </p>
+            <label className="flex items-center justify-between gap-3 pt-2 border-t border-[#EAEFF8] cursor-pointer">
+              <span className="text-xs font-semibold text-[#151B2E]">
+                Feature as Flagship
+              </span>
+              <input
+                type="checkbox"
+                id="event-is-featured"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="size-4 rounded border-gray-300 text-[#184098] focus:ring-[#184098] cursor-pointer"
+              />
+            </label>
+          </Card>
+
           {/* Event Classification & Media */}
           <Card className="border-[#D9DEEC] bg-white p-5 rounded-lg space-y-4 shadow-xs">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#151B2E] border-b border-[#D9DEEC] pb-2">
@@ -616,31 +660,16 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
               </Select>
             </div>
 
-            {/* Cover Image URL */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="event-cover"
-                className="block text-xs font-bold text-[#151B2E]"
-              >
-                Cover Image URL
-              </label>
-              <Input
-                id="event-cover"
-                placeholder="/images/ph_hero_classroom.jpg"
+            {/* Cover Image Upload (Drag-and-Drop & Media Library Picker) */}
+            <div className="pt-2 border-t border-[#D9DEEC]">
+              <SectionImageUpload
+                label="Master Cover Image (16:9)"
+                description="Recommended: 1200×675 or 1920×1080 (JPG, PNG, WebP). Formats cleanly across event details, flagship banner, and listing cards."
                 value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="h-9 text-xs border-[#D9DEEC]"
+                onChange={({ url }) => setCoverImage(url)}
+                folder="events"
+                aspectRatio="video"
               />
-              {coverImage && (
-                <div className="relative mt-2 h-28 w-full rounded-md overflow-hidden border border-[#D9DEEC]">
-                  <Image
-                    src={coverImage}
-                    alt="Cover preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
             </div>
           </Card>
         </div>

@@ -391,3 +391,23 @@
     box-shadow: 0 25px 40px -12px rgba(8, 39, 107, 0.35);
   }
 }
+
+/* Continuous Partner Logo Marquee (Right to Left) */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

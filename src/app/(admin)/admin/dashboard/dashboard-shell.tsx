@@ -6,6 +6,7 @@ import {
   Calendar,
   ExternalLink,
   FileText,
+  Handshake,
   Image as ImageIcon,
   Inbox,
   LayoutDashboard,
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
   { name: "Blog Posts", href: "/admin/posts", icon: BookOpen },
   { name: "Events", href: "/admin/events", icon: Calendar },
   { name: "Programmes", href: "/admin/programmes", icon: Award },
+  { name: "Partners", href: "/admin/partners", icon: Handshake },
   { name: "Submissions", href: "/admin/submissions", icon: Inbox },
   { name: "Pages & Content", href: "/admin/pages", icon: FileText },
   { name: "Media Library", href: "/admin/media", icon: ImageIcon },
@@ -96,7 +98,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         <div className="flex h-16 items-center justify-between border-b border-[#D9DEEC] px-6">
           <Link href="/admin/dashboard" className="relative h-10 w-32 block">
             <Image
-              src="/images/logo.png"
+              src="/images/brand-logo.jpg"
               alt="PortHarcourtSchools Logo"
               fill
               sizes="128px"
@@ -177,7 +179,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#D9DEEC] bg-white px-4 md:hidden">
           <Link href="/admin/dashboard" className="relative h-8 w-28 block">
             <Image
-              src="/images/logo.png"
+              src="/images/brand-logo.jpg"
               alt="PortHarcourtSchools Logo"
               fill
               sizes="112px"
@@ -220,7 +222,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
                   <div className="flex items-center justify-between">
                     <div className="relative h-9 w-32">
                       <Image
-                        src="/images/logo.png"
+                        src="/images/brand-logo.jpg"
                         alt="PortHarcourtSchools Logo"
                         fill
                         sizes="128px"

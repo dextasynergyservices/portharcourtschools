@@ -50,9 +50,9 @@ export const metadata: Metadata = {
   description:
     "The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
   icons: {
-    icon: "/images/logo.png",
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: "/images/brand-logo.jpg",
+    shortcut: "/images/brand-logo.jpg",
+    apple: "/images/brand-logo.jpg",
   },
   openGraph: {
     title: "PortHarcourtSchools — Schools Directory, Blog & Community",

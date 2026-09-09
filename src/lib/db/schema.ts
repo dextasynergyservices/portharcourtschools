@@ -381,6 +381,7 @@ export const events = pgTable("events", {
   venue: text("venue").notNull(),
   coverImage: text("cover_image"),
   type: eventTypeEnum("type").default("summit").notNull(),
+  isFeatured: boolean("is_featured").default(false).notNull(),
   isPaid: boolean("is_paid").default(false).notNull(),
   price: integer("price").default(0), // Amount in Naira ₦
   paymentLink: text("payment_link"),

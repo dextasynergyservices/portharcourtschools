@@ -52,10 +52,10 @@ export function EventRegistrationConfirmedEmail({
           {/* Brand Logo Header */}
           <Section style={logoBar}>
             <Img
-              src={`${siteUrl}/images/logo.png`}
+              src={`${siteUrl}/images/brand-logo.jpg`}
               alt="PortHarcourtSchools"
-              width="170"
-              height="50"
+              width="64"
+              height="64"
               style={{ margin: "0 auto", display: "block" }}
             />
           </Section>

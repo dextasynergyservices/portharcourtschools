@@ -55,9 +55,9 @@ export function UserInviteEmail({
           {/* Brand Header */}
           <Section style={logoBarStyle}>
             <Img
-              src={`${siteUrl}/images/logo.png`}
-              width="180"
-              height="40"
+              src={`${siteUrl}/images/brand-logo.jpg`}
+              width="64"
+              height="64"
               alt="PortHarcourtSchools"
               style={logoStyle}
             />

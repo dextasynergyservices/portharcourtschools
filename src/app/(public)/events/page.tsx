@@ -3,7 +3,7 @@ import { Calendar, GraduationCap, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { PartnerEventDialog } from "@/components/site/events/partner-event-dialog";
+import { FlagshipEventShowcase } from "@/components/site/events/flagship-event-showcase";
 import { RegisterEventDialog } from "@/components/site/events/register-event-dialog";
 import {
   FadeIn,
@@ -71,11 +71,19 @@ export default async function EventsAndProgrammesPage({
     orderBy: [desc(events.startDate)],
   });
 
-  // Flagship event (Summit & Awards)
-  const flagshipEvent =
-    allPublishedEvents.find(
-      (e) => e.type === "summit" || e.slug.includes("summit"),
-    ) || allPublishedEvents[0];
+  // Flagship spotlight events: prioritize events explicitly marked isFeatured: true
+  // Fallback to summit format or most recent event if none are explicitly marked
+  const featuredFlagshipEvents = allPublishedEvents.filter((e) => e.isFeatured);
+  const showcaseEvents =
+    featuredFlagshipEvents.length > 0
+      ? featuredFlagshipEvents
+      : allPublishedEvents.filter(
+            (e) => e.type === "summit" || e.slug.includes("summit"),
+          ).length > 0
+        ? allPublishedEvents.filter(
+            (e) => e.type === "summit" || e.slug.includes("summit"),
+          )
+        : allPublishedEvents.slice(0, 1);
 
   // 2. Fetch published programmes
   const allProgrammes = await db.query.programmes.findMany({
@@ -116,116 +124,9 @@ export default async function EventsAndProgrammesPage({
         </div>
       </section>
 
-      {/* Featured Flagship Event: The Teachers Spotlight Education Summit & Awards */}
-      {flagshipEvent && (
-        <section className="relative py-12 sm:py-20 bg-white border-b border-[#E4E0D5]">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="bg-[#08276B] text-white rounded-xl p-6 sm:p-12 shadow-xl relative overflow-hidden">
-              {/* Background Glow */}
-              <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="max-w-3xl space-y-6 relative z-10">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="inline-block px-3 py-1 bg-white/10 text-white border border-white/20 rounded-md font-display text-xs font-bold uppercase tracking-widest">
-                    Featured Flagship Event
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] uppercase font-bold border-white/30 text-white"
-                  >
-                    {flagshipEvent.type}
-                  </Badge>
-                  {flagshipEvent.isPaid ? (
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] uppercase font-bold border-emerald-400 bg-emerald-950/40 text-emerald-300"
-                    >
-                      ₦{(flagshipEvent.price || 0).toLocaleString()} • Ticket
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] uppercase font-bold border-white/30 text-white"
-                    >
-                      Free Admission
-                    </Badge>
-                  )}
-                </div>
-
-                <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight leading-tight">
-                  <Link
-                    href={`/events/${flagshipEvent.slug}`}
-                    className="hover:underline"
-                  >
-                    {flagshipEvent.title}
-                  </Link>
-                </h2>
-
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-[#D9DEEC]">
-                  <span className="flex items-center gap-2">
-                    <Calendar className="size-4 text-white" />
-                    {new Date(flagshipEvent.startDate).toLocaleDateString(
-                      "en-GB",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      },
-                    )}
-                  </span>
-                  <span className="text-white/40">•</span>
-                  <span className="flex items-center gap-2 text-[#D9DEEC]">
-                    <MapPin className="size-4 text-white/80" />
-                    {flagshipEvent.venue}
-                  </span>
-                </div>
-
-                <p className="text-base sm:text-lg text-[#D9DEEC] leading-relaxed font-sans pt-1">
-                  {flagshipEvent.description}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/15">
-                  <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-white">
-                      The Summit
-                    </h3>
-                    <p className="text-xs sm:text-sm text-[#D9DEEC] leading-relaxed font-sans">
-                      Brings together school leaders, educators and
-                      institutional partners for keynote panels on curriculum
-                      modernization, school safety, and educator retention.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="font-heading text-lg font-bold text-white">
-                      Classroom Champions Awards
-                    </h3>
-                    <p className="text-xs sm:text-sm text-[#D9DEEC] leading-relaxed font-sans">
-                      Shines a deserving light on classroom teachers whose work
-                      transforms pupils&apos; lives, nominated and celebrated
-                      directly by the communities they serve.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-6 flex flex-wrap items-center gap-4">
-                  <RegisterEventDialog
-                    event={flagshipEvent}
-                    triggerClassName="cta-button cta-primary group"
-                    triggerText={
-                      flagshipEvent.isPaid
-                        ? "Register & Get Tickets"
-                        : "Register for Free"
-                    }
-                  />
-
-                  <PartnerEventDialog eventTitle={flagshipEvent.title} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* Featured Flagship Event Showcase (Solid #08276B, No Gradients, Displays Cover Image) */}
+      {showcaseEvents.length > 0 && (
+        <FlagshipEventShowcase events={showcaseEvents} />
       )}
 
       {/* Upcoming Events Grid */}

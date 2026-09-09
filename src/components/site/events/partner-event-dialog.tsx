@@ -72,13 +72,12 @@ export function PartnerEventDialog({
         ) : (
           <Button
             type="button"
-            variant="outline"
             className={
               triggerClassName ||
-              "text-xs font-display font-bold uppercase tracking-wider text-white border-white/30 hover:bg-white hover:text-[#08276B] px-3"
+              "bg-white text-[#184098] hover:bg-[#EEF2FA] hover:text-[#08276B] border border-white font-display font-bold text-xs uppercase tracking-wider px-4 h-11 shadow-xs transition-colors"
             }
           >
-            <Handshake className="size-3.5 mr-1.5" />
+            <Handshake className="size-3.5 mr-1.5 text-[#184098]" />
             <span>Partner With This Event</span>
           </Button>
         )}

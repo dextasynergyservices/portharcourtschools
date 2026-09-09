@@ -136,7 +136,7 @@ export default function AdminStyleGuidePage() {
           <div className="flex items-center gap-4">
             <Link href="/admin/dashboard" className="relative h-12 w-36 block">
               <Image
-                src="/images/logo.png"
+                src="/images/brand-logo.jpg"
                 alt="PortHarcourtSchools Logo"
                 fill
                 className="object-contain object-left"

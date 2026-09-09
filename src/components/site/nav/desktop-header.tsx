@@ -52,14 +52,14 @@ export function DesktopHeader({ onOpenSearch }: DesktopHeaderProps) {
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group py-1">
           <Image
-            src="/images/logo.png"
+            src="/images/brand-logo.jpg"
             alt="PortHarcourtSchools"
             width={180}
             height={56}
             priority
             loading="eager"
             className={cn(
-              "w-auto object-contain transition-all duration-300 group-hover:scale-[1.02]",
+              "w-auto object-contain rounded-md transition-all duration-300 group-hover:scale-[1.02]",
               scrolled ? "h-9" : "h-11",
             )}
           />
