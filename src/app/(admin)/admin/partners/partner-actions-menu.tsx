@@ -2,13 +2,13 @@
 
 import { Menu } from "@base-ui/react/menu";
 import {
+  CheckCircle2,
   Edit,
   ExternalLink,
   Loader2,
   MoreVertical,
-  Sparkles,
   Trash2,
-  Users,
+  XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -22,23 +22,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteEventAction, toggleEventFeaturedAction } from "./actions";
+import { deletePartnerAction, togglePartnerActiveAction } from "./actions";
 
-interface EventActionsMenuProps {
-  eventId: string;
-  eventTitle: string;
-  eventSlug: string;
-  isPublished: boolean;
-  isFeatured?: boolean;
+interface PartnerActionsMenuProps {
+  partnerId: string;
+  partnerName: string;
+  partnerWebsite?: string | null;
+  isActive: boolean;
 }
 
-export function EventActionsMenu({
-  eventId,
-  eventTitle,
-  eventSlug,
-  isPublished,
-  isFeatured = false,
-}: EventActionsMenuProps) {
+export function PartnerActionsMenu({
+  partnerId,
+  partnerName,
+  partnerWebsite,
+  isActive,
+}: PartnerActionsMenuProps) {
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -47,13 +45,29 @@ export function EventActionsMenu({
   const handleDelete = () => {
     setError(null);
     startTransition(async () => {
-      const res = await deleteEventAction(eventId);
+      const res = await deletePartnerAction(partnerId);
       if (res.error) {
         setError(res.error);
-        toast.error("Failed to delete event", { description: res.error });
+        toast.error("Failed to delete partner", { description: res.error });
       } else {
         setDeleteDialogOpen(false);
-        toast.success("Event deleted successfully");
+        toast.success("Partner removed successfully");
+        router.refresh();
+      }
+    });
+  };
+
+  const handleToggleActive = () => {
+    startTransition(async () => {
+      const res = await togglePartnerActiveAction(partnerId, !isActive);
+      if (res.error) {
+        toast.error("Failed to update status", { description: res.error });
+      } else {
+        toast.success(
+          !isActive
+            ? "Partner activated on public site"
+            : "Partner hidden from public site",
+        );
         router.refresh();
       }
     });
@@ -65,7 +79,7 @@ export function EventActionsMenu({
         <Menu.Trigger
           type="button"
           className="inline-flex size-8 items-center justify-center rounded-[4px] text-muted-foreground hover:text-[#184098] hover:bg-[#EEF2FA] transition-colors focus:outline-none focus:ring-2 focus:ring-[#184098]/30"
-          aria-label="Event actions"
+          aria-label="Partner actions"
         >
           <MoreVertical className="size-4" />
         </Menu.Trigger>
@@ -78,61 +92,39 @@ export function EventActionsMenu({
             className="z-50"
           >
             <Menu.Popup className="min-w-[170px] rounded-md border border-[#D9DEEC] bg-white p-1.5 shadow-xl text-xs outline-none animate-in fade-in zoom-in-95">
-              {isPublished && (
+              {partnerWebsite && (
                 <Menu.Item
                   className="flex items-center gap-2.5 px-2.5 py-2 rounded text-[#151B2E] hover:bg-[#EEF2FA] hover:text-[#184098] cursor-pointer outline-none select-none transition-colors"
-                  onClick={() => window.open(`/events/${eventSlug}`, "_blank")}
+                  onClick={() => window.open(partnerWebsite, "_blank")}
                 >
                   <ExternalLink className="size-3.5 text-muted-foreground" />
-                  <span>View Live</span>
+                  <span>Visit Website</span>
                 </Menu.Item>
               )}
 
               <Menu.Item
                 className="flex items-center gap-2.5 px-2.5 py-2 rounded text-[#151B2E] hover:bg-[#EEF2FA] hover:text-[#184098] cursor-pointer outline-none select-none transition-colors"
-                onClick={() => router.push(`/admin/events/${eventId}/edit`)}
+                onClick={() => router.push(`/admin/partners/${partnerId}/edit`)}
               >
                 <Edit className="size-3.5 text-muted-foreground" />
-                <span>Edit Event</span>
+                <span>Edit Partner</span>
               </Menu.Item>
 
               <Menu.Item
                 className="flex items-center gap-2.5 px-2.5 py-2 rounded text-[#151B2E] hover:bg-[#EEF2FA] hover:text-[#184098] cursor-pointer outline-none select-none transition-colors"
-                onClick={() =>
-                  router.push(`/admin/events/${eventId}/registrations`)
-                }
+                onClick={handleToggleActive}
               >
-                <Users className="size-3.5 text-muted-foreground" />
-                <span>View Registrants</span>
-              </Menu.Item>
-
-              <Menu.Item
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded text-[#151B2E] hover:bg-[#EEF2FA] hover:text-[#184098] cursor-pointer outline-none select-none transition-colors"
-                onClick={() => {
-                  startTransition(async () => {
-                    const res = await toggleEventFeaturedAction(
-                      eventId,
-                      !isFeatured,
-                    );
-                    if (res.error) {
-                      toast.error("Failed to update flagship status", {
-                        description: res.error,
-                      });
-                    } else {
-                      toast.success(
-                        !isFeatured
-                          ? "Event spotlighted as Flagship"
-                          : "Event removed from Flagship",
-                      );
-                      router.refresh();
-                    }
-                  });
-                }}
-              >
-                <Sparkles className="size-3.5 text-[#C49A45]" />
-                <span>
-                  {isFeatured ? "Remove Flagship" : "Set as Flagship"}
-                </span>
+                {isActive ? (
+                  <>
+                    <XCircle className="size-3.5 text-amber-600" />
+                    <span>Deactivate</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-3.5 text-emerald-600" />
+                    <span>Activate</span>
+                  </>
+                )}
               </Menu.Item>
 
               <Menu.Separator className="my-1 h-px bg-[#D9DEEC]" />
@@ -142,7 +134,7 @@ export function EventActionsMenu({
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="size-3.5 text-red-600" />
-                <span>Delete Event</span>
+                <span>Delete Partner</span>
               </Menu.Item>
             </Menu.Popup>
           </Menu.Positioner>
@@ -157,15 +149,15 @@ export function EventActionsMenu({
               <Trash2 className="size-5" />
             </div>
             <DialogTitle className="text-base sm:text-lg">
-              Delete Event
+              Delete Partner
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-              Are you sure you want to delete{" "}
+              Are you sure you want to remove{" "}
               <span className="font-semibold text-[#151B2E]">
-                &ldquo;{eventTitle}&rdquo;
+                &ldquo;{partnerName}&rdquo;
               </span>
-              ? This action cannot be undone and will permanently remove this
-              event from the database.
+              ? This action will remove the partner and their logo from the
+              public website and homepage ticker.
             </DialogDescription>
           </DialogHeader>
 
@@ -198,7 +190,7 @@ export function EventActionsMenu({
                   Deleting...
                 </>
               ) : (
-                "Delete Event"
+                "Delete Partner"
               )}
             </Button>
           </DialogFooter>

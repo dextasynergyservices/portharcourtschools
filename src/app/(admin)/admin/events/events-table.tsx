@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
@@ -19,6 +19,7 @@ export interface EventRowData {
   price: number | null;
   paymentLink: string | null;
   status: string;
+  isFeatured: boolean;
   registrationsCount: number;
 }
 
@@ -37,13 +38,24 @@ export function EventsTable({ events }: EventsTableProps) {
         const event = row.original;
         return (
           <div className="max-w-[280px] lg:max-w-md">
-            <Link
-              href={`/admin/events/${event.id}/edit`}
-              title={event.title}
-              className="font-bold text-sm text-[#184098] hover:underline block truncate leading-snug"
-            >
-              {event.title}
-            </Link>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Link
+                href={`/admin/events/${event.id}/edit`}
+                title={event.title}
+                className="font-bold text-sm text-[#184098] hover:underline truncate leading-snug"
+              >
+                {event.title}
+              </Link>
+              {event.isFeatured && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] uppercase font-bold border-[#C49A45]/40 bg-[#C49A45]/15 text-[#8F6B1E] shrink-0 h-4 px-1.5"
+                >
+                  <Sparkles className="size-2.5 mr-0.5 text-[#C49A45]" />
+                  Flagship
+                </Badge>
+              )}
+            </div>
             <span
               title={`/events/${event.slug}`}
               className="font-mono text-[11px] text-muted-foreground block truncate mt-0.5"
@@ -183,6 +195,7 @@ export function EventsTable({ events }: EventsTableProps) {
               eventTitle={event.title}
               eventSlug={event.slug}
               isPublished={event.status === "published"}
+              isFeatured={event.isFeatured}
             />
           </div>
         );

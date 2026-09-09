@@ -63,6 +63,9 @@ export async function createEventAction(
   const endDateStr = (formData.get("endDate") as string) || null;
   const venue = (formData.get("venue") as string) || "";
   const coverImage = (formData.get("coverImage") as string) || null;
+  const isFeatured =
+    formData.get("isFeatured") === "true" ||
+    formData.get("isFeatured") === "on";
   const isPaid =
     formData.get("isPaid") === "true" || formData.get("isPaid") === "on";
   const rawPrice = formData.get("price");
@@ -91,6 +94,7 @@ export async function createEventAction(
     endDate: endDateStr,
     venue,
     coverImage,
+    isFeatured,
     isPaid,
     price: isPaid ? (rawPrice ? Number(rawPrice) : 0) : 0,
     paymentLink: isPaid ? paymentLink : null,
@@ -130,6 +134,7 @@ export async function createEventAction(
         endDate: data.endDate ? new Date(data.endDate) : null,
         venue: data.venue,
         coverImage: data.coverImage,
+        isFeatured: data.isFeatured,
         isPaid: data.isPaid,
         price: data.price,
         paymentLink: data.isPaid ? data.paymentLink : null,
@@ -177,6 +182,9 @@ export async function updateEventAction(
   const endDateStr = (formData.get("endDate") as string) || null;
   const venue = (formData.get("venue") as string) || "";
   const coverImage = (formData.get("coverImage") as string) || null;
+  const isFeatured =
+    formData.get("isFeatured") === "true" ||
+    formData.get("isFeatured") === "on";
   const isPaid =
     formData.get("isPaid") === "true" || formData.get("isPaid") === "on";
   const rawPrice = formData.get("price");
@@ -203,6 +211,7 @@ export async function updateEventAction(
     endDate: endDateStr,
     venue,
     coverImage,
+    isFeatured,
     isPaid,
     price: isPaid ? (rawPrice ? Number(rawPrice) : 0) : 0,
     paymentLink: isPaid ? paymentLink : null,
@@ -251,6 +260,7 @@ export async function updateEventAction(
         endDate: data.endDate ? new Date(data.endDate) : null,
         venue: data.venue,
         coverImage: data.coverImage,
+        isFeatured: data.isFeatured,
         isPaid: data.isPaid,
         price: data.price,
         paymentLink: data.isPaid ? data.paymentLink : null,
@@ -417,5 +427,30 @@ export async function deleteEventRegistrationAction(
   } catch (err) {
     console.error("Failed to delete registration:", err);
     return { error: "Failed to delete registration." };
+  }
+}
+
+export async function toggleEventFeaturedAction(
+  id: string,
+  isFeatured: boolean,
+): Promise<{ success?: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    await db
+      .update(events)
+      .set({ isFeatured, updatedAt: new Date() })
+      .where(eq(events.id, id));
+
+    revalidatePath("/admin/events");
+    revalidatePath("/events");
+    await invalidateCache(["events", "homepage"]);
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to toggle event featured status:", err);
+    return { error: "Failed to update flagship event status." };
   }
 }

@@ -1,8 +1,11 @@
+import { asc, desc, eq } from "drizzle-orm";
 import {
   Award,
   Building2,
   CheckCircle2,
+  ExternalLink,
   GraduationCap,
+  Handshake,
   Megaphone,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -12,6 +15,8 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/site/motion-wrapper";
+import { getOrSetCache } from "@/lib/cache";
+import { db, partners } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Partners — PortHarcourtSchools | EdFocus Africa",
@@ -47,7 +52,73 @@ function ArrowDiagonal({
   );
 }
 
-export default function PartnersPage() {
+const DEFAULT_PARTNERS = [
+  {
+    id: "default-1",
+    name: "GeePhill Education Consulting",
+    logo: "/images/brand-logo.jpg",
+    website: "https://geeffill.com",
+    tier: "strategic",
+    description:
+      "Accredited professional training, educator development masterclasses, and curriculum modernization across Rivers State.",
+  },
+  {
+    id: "default-2",
+    name: "EdFocus Africa",
+    logo: "/images/brand-logo.jpg",
+    website: "https://edfocus.africa",
+    tier: "headline",
+    description:
+      "Continental media and policy network driving systemic investment into primary, secondary, and tertiary African education.",
+  },
+  {
+    id: "default-3",
+    name: "Rivers State Teachers Forum",
+    logo: "/images/brand-logo.jpg",
+    website: null,
+    tier: "education",
+    description:
+      "State-wide community of passionate frontline educators collaborating on classroom best practices and pupil outcomes.",
+  },
+  {
+    id: "default-4",
+    name: "Classroom Champions Initiative",
+    logo: "/images/classroom_champions_emblem.jpg",
+    website: "https://portharcourtschools.com/events",
+    tier: "strategic",
+    description:
+      "Honoring, mentoring, and publishing outstanding educators nominated directly by the school communities they serve.",
+  },
+];
+
+export default async function PartnersPage() {
+  let livePartners: Array<{
+    id: string;
+    name: string;
+    logo: string;
+    website: string | null;
+    tier: string;
+    description: string | null;
+  }> = [];
+  try {
+    livePartners = await getOrSetCache(
+      "partners:all",
+      ["partners"],
+      async () => {
+        return db.query.partners.findMany({
+          where: eq(partners.isActive, true),
+          orderBy: [asc(partners.order), desc(partners.createdAt)],
+        });
+      },
+      300,
+    );
+  } catch (err) {
+    console.warn("Could not query partners from DB:", err);
+  }
+
+  const displayPartners =
+    livePartners.length > 0 ? livePartners : DEFAULT_PARTNERS;
+
   const whyPartner = [
     "Direct access to an engaged community of parents, teachers and school leaders",
     "Visibility at flagship events like the Teachers Spotlight Education Summit & Awards",
@@ -109,8 +180,98 @@ export default function PartnersPage() {
         </div>
       </section>
 
-      {/* Why Partner With Us */}
+      {/* Our Valued Partners Section */}
       <section className="relative py-16 sm:py-24 bg-white border-b border-[#E4E0D5]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-[#D9DEEC] pb-6">
+            <div className="space-y-1.5">
+              <FadeIn>
+                <div className="inline-flex items-center gap-1.5 font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
+                  <Handshake className="size-3.5" />
+                  <span>Our Trusted Ecosystem</span>
+                </div>
+              </FadeIn>
+              <FadeIn delay={0.06}>
+                <h2 className="font-heading text-2xl sm:text-4xl font-black uppercase tracking-tight text-[#151B2E]">
+                  Our Valued Partners
+                </h2>
+              </FadeIn>
+              <FadeIn delay={0.12}>
+                <p className="text-sm text-muted-foreground max-w-2xl font-sans leading-relaxed">
+                  Meet the visionary institutions, corporate brands, and
+                  education consultancies driving real progress in Rivers State.
+                </p>
+              </FadeIn>
+            </div>
+
+            <FadeIn delay={0.16}>
+              <Link
+                href="/contact?type=partner"
+                className="bg-[#184098] hover:bg-[#08276B] text-white font-display font-bold text-xs uppercase tracking-wider px-5 h-11 rounded-xs inline-flex items-center gap-2 transition-colors shadow-xs shrink-0"
+              >
+                <span>Become a Partner</span>
+                <ArrowDiagonal className="text-white" />
+              </Link>
+            </FadeIn>
+          </div>
+
+          {/* Partners Logo & Profile Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayPartners.map((partner) => (
+              <div
+                key={partner.id}
+                className="group flex flex-col justify-between bg-[#F8FAFC] border border-[#E4E0D5] hover:border-[#184098]/40 hover:bg-white rounded-lg p-6 transition-all shadow-xs hover:shadow-md space-y-4"
+              >
+                <div className="space-y-4">
+                  {/* Logo Container */}
+                  <div className="h-16 w-full rounded-md border border-[#D9DEEC] bg-white flex items-center justify-center p-2.5 overflow-hidden">
+                    {/* biome-ignore lint/performance/noImgElement: Dynamic CMS partner logo */}
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="inline-block text-[9px] font-display font-bold uppercase tracking-wider text-[#8F6B1E] bg-[#C49A45]/15 border border-[#C49A45]/30 px-2 py-0.5 rounded">
+                        {partner.tier.replace("_", " ")}
+                      </span>
+                    </div>
+                    <h3 className="font-heading text-base font-bold text-[#151B2E] group-hover:text-[#184098] transition-colors leading-snug">
+                      {partner.name}
+                    </h3>
+                  </div>
+
+                  {partner.description && (
+                    <p className="text-xs text-[#55627D] leading-relaxed font-sans line-clamp-3">
+                      {partner.description}
+                    </p>
+                  )}
+                </div>
+
+                {partner.website && (
+                  <div className="pt-4 border-t border-[#D9DEEC]/60">
+                    <a
+                      href={partner.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#184098] hover:text-[#08276B] hover:underline"
+                    >
+                      <span>Visit Website</span>
+                      <ExternalLink className="size-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Partner With Us */}
+      <section className="relative py-16 sm:py-24 bg-[#F5F4F0] border-b border-[#E4E0D5]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             <div className="lg:col-span-5 space-y-4">
@@ -133,7 +294,7 @@ export default function PartnersPage() {
               <StaggerContainer className="space-y-3">
                 {whyPartner.map((point) => (
                   <StaggerItem key={point}>
-                    <div className="flex items-start gap-3.5 p-4 rounded-[2px] border border-[#D9DEEC] bg-[#F5F4F0]">
+                    <div className="flex items-start gap-3.5 p-4 rounded-[2px] border border-[#D9DEEC] bg-white">
                       <CheckCircle2 className="size-5 text-[#184098] shrink-0 mt-0.5" />
                       <p className="text-sm font-sans font-medium text-[#151B2E]">
                         {point}

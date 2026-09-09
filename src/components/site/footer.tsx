@@ -32,11 +32,11 @@ export function SiteFooter() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block group">
               <Image
-                src="/images/logo.png"
+                src="/images/brand-logo.jpg"
                 alt="PortHarcourtSchools"
                 width={160}
                 height={50}
-                className="h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                className="h-12 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
               />
             </Link>
 
@@ -190,8 +190,16 @@ export function SiteFooter() {
         {/* Bottom copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#D9DEEC]/70">
           <p>
-            © {new Date().getFullYear()} PortHarcourtSchools. Powered by EdFocus
-            Africa. All rights reserved.
+            © {new Date().getFullYear()} PortHarcourtSchools. Built by{" "}
+            <a
+              href="https://www.dexta.services"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#FDDA32] hover:underline font-bold transition-colors"
+            >
+              DEXTA
+            </a>
+            . All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/about" className="hover:text-white transition-colors">

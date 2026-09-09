@@ -172,7 +172,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
       name: "PortHarcourtSchools",
       logo: {
         "@type": "ImageObject",
-        url: `${siteUrl}/images/logo.png`,
+        url: `${siteUrl}/images/brand-logo.jpg`,
       },
     },
     mainEntityOfPage: {
