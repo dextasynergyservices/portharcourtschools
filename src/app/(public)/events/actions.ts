@@ -1,6 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { generateGoogleCalendarUrl } from "@/lib/calendar";
 import {
   contactSubmissions,
@@ -14,6 +15,12 @@ import {
   sendEventPaymentPendingEmail,
   sendEventRegistrationConfirmedEmail,
 } from "@/lib/email";
+import {
+  checkContactRateLimit,
+  checkNominationRateLimit,
+  checkRegistrationRateLimit,
+  getClientIp,
+} from "@/lib/ratelimit";
 
 import {
   nominationSchema,
@@ -25,6 +32,17 @@ export async function createNominationAction(formData: FormData): Promise<{
   success?: boolean;
   error?: string;
 }> {
+  // IP Rate limiting
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const rateCheck = await checkNominationRateLimit(clientIp);
+  if (!rateCheck.success) {
+    return {
+      error:
+        "You have submitted multiple nominations recently. Please wait 10 minutes before trying again.",
+    };
+  }
+
   const nomineeName = (formData.get("nomineeName") as string) || "";
   const nomineeSchool = (formData.get("nomineeSchool") as string) || "";
   const nominatorName = (formData.get("nominatorName") as string) || "";
@@ -76,6 +94,17 @@ export async function createEventPartnerInquiryAction(
   success?: boolean;
   error?: string;
 }> {
+  // IP Rate limiting
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const rateCheck = await checkContactRateLimit(clientIp);
+  if (!rateCheck.success) {
+    return {
+      error:
+        "You have submitted multiple partnership inquiries recently. Please wait 10 minutes before trying again.",
+    };
+  }
+
   const name = (formData.get("name") as string) || "";
   const email = (formData.get("email") as string) || "";
   const phone = (formData.get("phone") as string) || null;
@@ -134,6 +163,17 @@ export async function createEventRegistrationAction(
   paymentLink?: string | null;
   registrationId?: string;
 }> {
+  // IP Rate limiting
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const rateCheck = await checkRegistrationRateLimit(clientIp);
+  if (!rateCheck.success) {
+    return {
+      error:
+        "Too many registration requests. Please wait a few minutes before registering again.",
+    };
+  }
+
   const eventId = (formData.get("eventId") as string) || "";
   const fullName = (formData.get("fullName") as string) || "";
   const email = (formData.get("email") as string) || "";
@@ -143,6 +183,7 @@ export async function createEventRegistrationAction(
   const rawQty = formData.get("ticketQuantity");
   const ticketQuantity = rawQty ? Number(rawQty) : 1;
   const notes = (formData.get("notes") as string) || null;
+  const ticketTierName = (formData.get("ticketTierName") as string) || null;
 
   const parsed = registrationSchema.safeParse({
     eventId,
@@ -161,7 +202,7 @@ export async function createEventRegistrationAction(
     };
   }
 
-  // 1. Fetch event
+  // 1. Fetch event from database to verify availability and pricing
   const [event] = await db
     .select()
     .from(events)
@@ -172,9 +213,26 @@ export async function createEventRegistrationAction(
     return { error: "This event is not currently accepting registrations." };
   }
 
-  const unitPrice = event.isPaid ? event.price || 0 : 0;
-  const totalAmount = unitPrice * parsed.data.ticketQuantity;
-  const isPaidEvent = event.isPaid && totalAmount > 0;
+  // 2. Server-side price & payment link verification (Provider-Agnostic)
+  // Never trust client-submitted tier price or payment link from formData
+  let verifiedUnitPrice = event.isPaid ? event.price || 0 : 0;
+  let verifiedPaymentLink = event.paymentLink || null;
+
+  if (ticketTierName && Array.isArray(event.ticketTiers)) {
+    const matchedTier = event.ticketTiers.find(
+      (t) =>
+        t.name.trim().toLowerCase() === ticketTierName.trim().toLowerCase(),
+    );
+    if (matchedTier) {
+      verifiedUnitPrice = matchedTier.price ?? verifiedUnitPrice;
+      if (matchedTier.paymentLink) {
+        verifiedPaymentLink = matchedTier.paymentLink;
+      }
+    }
+  }
+
+  const totalAmount = verifiedUnitPrice * parsed.data.ticketQuantity;
+  const isPaidEvent = totalAmount > 0;
   const initialStatus = isPaidEvent ? "pending_payment" : "confirmed";
 
   try {
@@ -188,30 +246,39 @@ export async function createEventRegistrationAction(
         schoolName: parsed.data.schoolName?.trim() || null,
         role: parsed.data.role,
         ticketQuantity: parsed.data.ticketQuantity,
+        ticketTierName,
+        ticketTierPrice: verifiedUnitPrice,
         totalAmount,
         status: initialStatus,
         notes: parsed.data.notes,
       })
       .returning({ id: eventRegistrations.id });
 
-    // Prepare payment link with prefilled parameters if applicable
-    let finalPaymentLink = event.paymentLink;
+    // 3. Provider-Agnostic Payment Link Formatter
+    // Works with ANY payment provider link (Paystack, Flutterwave, Selar, Stripe, Moniepoint, etc.)
+    let finalPaymentLink = verifiedPaymentLink;
     if (isPaidEvent && finalPaymentLink) {
       try {
         const urlObj = new URL(finalPaymentLink);
-        if (!urlObj.searchParams.has("email")) {
-          urlObj.searchParams.set("email", parsed.data.email.trim());
+        // Only format secure HTTPS payment links
+        if (urlObj.protocol === "https:") {
+          // Attach standard query parameters supported by common payment gateways
+          if (!urlObj.searchParams.has("email")) {
+            urlObj.searchParams.set("email", parsed.data.email.trim());
+          }
+          if (!urlObj.searchParams.has("name")) {
+            urlObj.searchParams.set("name", parsed.data.fullName.trim());
+          }
+          if (!urlObj.searchParams.has("ref")) {
+            urlObj.searchParams.set("ref", reg.id);
+          }
+          if (!urlObj.searchParams.has("registration_id")) {
+            urlObj.searchParams.set("registration_id", reg.id);
+          }
+          finalPaymentLink = urlObj.toString();
         }
-        const nameParts = parsed.data.fullName.trim().split(" ");
-        if (!urlObj.searchParams.has("first_name") && nameParts[0]) {
-          urlObj.searchParams.set("first_name", nameParts[0]);
-        }
-        if (!urlObj.searchParams.has("last_name") && nameParts.length > 1) {
-          urlObj.searchParams.set("last_name", nameParts.slice(1).join(" "));
-        }
-        finalPaymentLink = urlObj.toString();
       } catch {
-        // use raw paymentLink if URL parse fails
+        // Retain original payment link if URL parsing is non-standard
       }
     }
 
@@ -231,6 +298,7 @@ export async function createEventRegistrationAction(
         eventDateStr,
         eventVenue: event.venue,
         ticketQuantity: parsed.data.ticketQuantity,
+        ticketTierName,
         totalAmount,
         paymentLink: finalPaymentLink || "#",
         registrationId: reg.id,
@@ -252,6 +320,7 @@ export async function createEventRegistrationAction(
         eventDateStr,
         eventVenue: event.venue,
         ticketQuantity: parsed.data.ticketQuantity,
+        ticketTierName,
         isPaid: false,
         totalAmount: 0,
         registrationId: reg.id,

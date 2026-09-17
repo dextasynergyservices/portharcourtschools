@@ -232,6 +232,7 @@ export const posts = pgTable("posts", {
   tags: jsonb("tags").$type<string[]>().default([]),
   authorId: text("author_id").references(() => users.id),
   status: postStatusEnum("status").default("draft").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
   publishedAt: timestamp("published_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -369,6 +370,17 @@ export const schoolsRelations = relations(schools, ({ one }) => ({
 // EVENTS & PROGRAMMES
 // ==========================================
 
+export interface TicketTier {
+  id: string;
+  name: string;
+  price: number; // Amount in Naira ₦, 0 for free
+  description?: string | null;
+  benefits?: string[];
+  paymentLink?: string | null;
+  badge?: string | null;
+  isAvailable?: boolean;
+}
+
 export const events = pgTable("events", {
   id: text("id")
     .primaryKey()
@@ -385,6 +397,11 @@ export const events = pgTable("events", {
   isPaid: boolean("is_paid").default(false).notNull(),
   price: integer("price").default(0), // Amount in Naira ₦
   paymentLink: text("payment_link"),
+  ticketTiers: jsonb("ticket_tiers")
+    .$type<TicketTier[]>()
+    .default([])
+    .notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
   status: eventStatusEnum("status").default("draft").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
@@ -403,6 +420,8 @@ export const eventRegistrations = pgTable("event_registrations", {
   schoolName: text("school_name"),
   role: text("role").default("teacher").notNull(),
   ticketQuantity: integer("ticket_quantity").default(1).notNull(),
+  ticketTierName: text("ticket_tier_name"),
+  ticketTierPrice: integer("ticket_tier_price"),
   totalAmount: integer("total_amount").default(0).notNull(),
   status: eventRegistrationStatusEnum("status")
     .default("pending_payment")

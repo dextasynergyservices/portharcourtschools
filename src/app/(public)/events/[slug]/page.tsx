@@ -1,21 +1,46 @@
 import { and, desc, eq, ne } from "drizzle-orm";
-import { Calendar, Clock, MapPin, Users } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Ticket,
+  Users,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { EventShareButtons } from "@/components/site/events/event-share-buttons";
 import { PartnerEventDialog } from "@/components/site/events/partner-event-dialog";
 import { RegisterEventDialog } from "@/components/site/events/register-event-dialog";
 import { FadeIn } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
+import { getOrSetCache } from "@/lib/cache";
 import { db, events } from "@/lib/db";
+
+export const revalidate = 600;
 
 interface EventPageProps {
   params: Promise<{
     slug: string;
   }>;
 }
+
+const getEventBySlug = cache(async (slug: string) => {
+  return getOrSetCache(
+    `event:${slug}`,
+    ["events", `event:${slug}`],
+    async () => {
+      const event = await db.query.events.findFirst({
+        where: and(eq(events.slug, slug), eq(events.status, "published")),
+      });
+      return event || null;
+    },
+    600,
+  );
+});
 
 export async function generateStaticParams() {
   const allEvents = await db.query.events.findMany({
@@ -34,10 +59,7 @@ export async function generateMetadata({
   params,
 }: EventPageProps): Promise<Metadata> {
   const { slug } = await params;
-
-  const event = await db.query.events.findFirst({
-    where: and(eq(events.slug, slug), eq(events.status, "published")),
-  });
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     return {
@@ -76,10 +98,7 @@ export async function generateMetadata({
 
 export default async function EventDetailPage({ params }: EventPageProps) {
   const { slug } = await params;
-
-  const event = await db.query.events.findFirst({
-    where: and(eq(events.slug, slug), eq(events.status, "published")),
-  });
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     notFound();
@@ -208,7 +227,13 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                     {event.type}
                   </Badge>
 
-                  {event.isPaid ? (
+                  {event.ticketTiers && event.ticketTiers.length > 0 ? (
+                    <Badge className="bg-[#184098] hover:bg-[#184098] text-white text-[11px] font-semibold border-none">
+                      {event.ticketTiers.some((t) => Number(t.price) === 0)
+                        ? `${event.ticketTiers.length} Ticket Tiers Available (Free & VIP)`
+                        : `${event.ticketTiers.length} Ticket Tiers Available`}
+                    </Badge>
+                  ) : event.isPaid ? (
                     <Badge className="bg-[#184098] hover:bg-[#184098] text-white text-[11px] font-semibold border-none">
                       ₦{(event.price || 0).toLocaleString()} • Paid Event
                     </Badge>
@@ -286,6 +311,26 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                 <div className="prose prose-slate max-w-none text-[#4A5568] leading-relaxed font-sans text-base space-y-4">
                   <p className="whitespace-pre-line">{event.description}</p>
                 </div>
+
+                {event.slug === "teachers-spotlight-summit-awards-2026" && (
+                  <div className="mt-6 rounded-lg border border-[#184098]/20 bg-[#EEF2FA]/70 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#184098] block">
+                        Featured Coverage
+                      </span>
+                      <p className="text-sm font-semibold text-[#151B2E]">
+                        Teachers Spotlight Awards &amp; Summit 2026 Set to Bring
+                        Educators Together in Port Harcourt
+                      </p>
+                    </div>
+                    <Link
+                      href="/blog/teachers-spotlight-awards-summit-2026-set-to-bring-educators-together-in-port-harcourt"
+                      className="text-xs font-bold text-[#184098] hover:text-[#15327A] underline shrink-0 inline-flex items-center gap-1"
+                    >
+                      Read Full Article →
+                    </Link>
+                  </div>
+                )}
               </section>
 
               {/* Target Audience / Who Should Attend */}
@@ -336,6 +381,112 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                   </div>
                 </div>
               </section>
+
+              {/* Tickets & Admission Tiers Section */}
+              {event.ticketTiers && event.ticketTiers.length > 0 && (
+                <section className="bg-white rounded-lg border border-[#E4E0D5] p-6 sm:p-8 space-y-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E4E0D5] pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Ticket className="size-5 text-[#184098]" />
+                        <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#151B2E]">
+                          Tickets &amp; Admission Tiers
+                        </h2>
+                      </div>
+                      <p className="text-xs text-[#5C6479] mt-1">
+                        Choose the admission package that best suits your goals,
+                        school, or organization.
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="w-fit text-xs font-bold border-[#184098] text-[#184098] bg-[#EEF2FA]"
+                    >
+                      {event.ticketTiers.length} Tier Options Available
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {event.ticketTiers.map((tier) => {
+                      const isFree = Number(tier.price) === 0;
+                      return (
+                        <div
+                          key={tier.id}
+                          className="flex flex-col justify-between rounded-lg border border-[#E4E0D5] bg-[#FAFBFF] p-5 sm:p-6 transition-all hover:border-[#184098]/60 hover:shadow-md relative"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <h3 className="font-heading text-base sm:text-lg font-black text-[#151B2E]">
+                                  {tier.name}
+                                </h3>
+                                {tier.description && (
+                                  <p className="text-xs text-[#5C6479] mt-1 leading-relaxed">
+                                    {tier.description}
+                                  </p>
+                                )}
+                              </div>
+                              {tier.badge && (
+                                <Badge className="bg-[#184098] hover:bg-[#184098] text-white text-[10px] font-bold shrink-0">
+                                  {tier.badge}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="my-4 py-3 border-y border-[#D9DEEC]/70">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                                Admission Fee
+                              </span>
+                              <span className="font-heading text-2xl sm:text-3xl font-black text-[#184098]">
+                                {isFree
+                                  ? "Free (₦0)"
+                                  : `₦${Number(tier.price).toLocaleString()}`}
+                              </span>
+                              {!isFree && (
+                                <span className="text-xs text-[#5C6479] ml-1 font-medium">
+                                  / delegate
+                                </span>
+                              )}
+                            </div>
+
+                            {tier.benefits && tier.benefits.length > 0 && (
+                              <div className="space-y-2 mb-6">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-[#151B2E] block">
+                                  Includes:
+                                </span>
+                                <ul className="space-y-1.5 text-xs text-[#4A5568]">
+                                  {tier.benefits.map((benefit, bIdx) => (
+                                    <li
+                                      key={`${tier.id}-${bIdx}-${benefit.slice(0, 10)}`}
+                                      className="flex items-start gap-2"
+                                    >
+                                      <CheckCircle2 className="size-3.5 text-[#2E8B57] shrink-0 mt-0.5" />
+                                      <span>{benefit}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="pt-2">
+                            <RegisterEventDialog
+                              event={event}
+                              defaultTierId={tier.id}
+                              triggerClassName="w-full justify-center text-xs h-10 font-bold bg-[#184098] hover:bg-[#15327A] text-white cursor-pointer"
+                              triggerText={
+                                isFree
+                                  ? "Claim Free Ticket"
+                                  : `Select ${tier.name}`
+                              }
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
             </div>
 
             {/* Right Column: Sticky Action & Ticket Box */}
@@ -349,13 +500,21 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                     </span>
                     <div className="mt-1 flex items-baseline justify-between">
                       <span className="font-heading text-2xl font-black text-[#151B2E]">
-                        {event.isPaid && event.price
-                          ? `₦${event.price.toLocaleString()}`
-                          : event.isPaid
-                            ? "Paid Event"
-                            : "Free Admission"}
+                        {event.ticketTiers && event.ticketTiers.length > 0
+                          ? event.ticketTiers.some((t) => Number(t.price) === 0)
+                            ? "Free / Multi-Tier"
+                            : `From ₦${Math.min(...event.ticketTiers.map((t) => Number(t.price))).toLocaleString()}`
+                          : event.isPaid && event.price
+                            ? `₦${event.price.toLocaleString()}`
+                            : event.isPaid
+                              ? "Paid Event"
+                              : "Free Admission"}
                       </span>
-                      {event.isPaid ? (
+                      {event.ticketTiers && event.ticketTiers.length > 0 ? (
+                        <span className="text-xs font-semibold text-[#184098] bg-[#EEF2FA] px-2 py-0.5 rounded">
+                          {event.ticketTiers.length} Tiers
+                        </span>
+                      ) : event.isPaid ? (
                         <span className="text-xs font-semibold text-[#184098] bg-[#EEF2FA] px-2 py-0.5 rounded">
                           Per Attendee
                         </span>

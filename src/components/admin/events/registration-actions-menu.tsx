@@ -42,6 +42,8 @@ export interface RegistrationItemData {
   schoolName: string | null;
   role: string;
   ticketQuantity: number;
+  ticketTierName?: string | null;
+  ticketTierPrice?: number | null;
   totalAmount: number;
   status: "pending_payment" | "confirmed" | "cancelled";
   notes: string | null;

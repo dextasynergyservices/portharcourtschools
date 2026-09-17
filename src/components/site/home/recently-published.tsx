@@ -42,8 +42,17 @@ export interface LivePostSummary {
   } | null;
 }
 
+export interface RecentlyPublishedCmsData {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+}
+
 interface RecentlyPublishedProps {
   livePosts?: LivePostSummary[];
+  cmsData?: RecentlyPublishedCmsData;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -55,14 +64,23 @@ const CATEGORY_COLORS: Record<string, string> = {
   "events-announcements": "#DC2626",
 };
 
-export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
+export function RecentlyPublished({
+  livePosts,
+  cmsData,
+}: RecentlyPublishedProps) {
+  const badge = cmsData?.badge || "Editorial Desk";
+  const title = cmsData?.title || "Recently Published";
+  const subtitle =
+    cmsData?.subtitle ||
+    "Stories, insights and clarity from inside Port Harcourt’s schools, curriculum changes, and classroom best practices.";
+  const ctaLabel = cmsData?.ctaLabel || "More Publications";
+  const ctaLink = cmsData?.ctaLink || "/blog";
   const defaultArticles = [
     {
       category: "Parent Corner",
       categoryColor: "#FDDA32",
       title:
         "Navigating Primary School Admissions in Port Harcourt: What to Ask on a Tour",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/navigating-primary-school-admissions-port-harcourt",
     },
@@ -71,7 +89,6 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
       categoryColor: "#E0B71E",
       title:
         "The 2026 NERDC Curriculum Reforms: What Every Rivers State Educator Needs to Know",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/nerdc-curriculum-reforms-rivers-state-educators",
     },
@@ -80,7 +97,6 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
       categoryColor: "#2E8B57",
       title:
         "Child Protection Standards: Five Safeguarding Protocols Every School Must Enforce",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/child-protection-standards-safeguarding-protocols-schools",
     },
@@ -89,7 +105,6 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
       categoryColor: "#D97706",
       title:
         "Honouring Our Unsung Champions: Why the Teachers Spotlight Awards Matter",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/honouring-unsung-champions-teachers-spotlight-awards",
     },
@@ -98,7 +113,6 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
       categoryColor: "#184098",
       title:
         "The Role of Accredited Professional Development in Teacher Retention",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/accredited-professional-development-teacher-retention",
     },
@@ -106,7 +120,6 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
       category: "Events & Announcements",
       categoryColor: "#DC2626",
       title: "Announcing The Teachers Spotlight Education Summit & Awards 2026",
-      author: "Super Admin",
       date: "September 7, 2026",
       href: "/blog/announcing-teachers-spotlight-summit-awards-2026",
     },
@@ -140,7 +153,7 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
     >
       {/* Giant architectural watermark in dark contrast */}
       <span className="offset_subheader" aria-hidden="true">
-        Recently Published
+        {title}
       </span>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -149,21 +162,20 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
           <div className="lg:col-span-3 space-y-4">
             <FadeIn>
               <span className="font-display text-xs font-bold uppercase tracking-widest text-[#FDDA32]">
-                Editorial Desk
+                {badge}
               </span>
               <h2 className="font-heading text-3xl sm:text-4xl font-black text-white uppercase tracking-tight mt-1">
-                Recently Published
+                {title}
               </h2>
               <p className="text-sm text-[#D9DEEC] leading-relaxed font-sans pt-1">
-                Stories, insights and clarity from inside Port Harcourt’s
-                schools, curriculum changes, and classroom best practices.
+                {subtitle}
               </p>
             </FadeIn>
 
             <FadeIn delay={0.1}>
               <div className="pt-2">
-                <Link href="/blog" className="subheader_cta group text-white">
-                  <span className="text-white">More Publications</span>
+                <Link href={ctaLink} className="subheader_cta group text-white">
+                  <span className="text-white">{ctaLabel}</span>
                   <ArrowDiagonal className="text-[#FDDA32]" />
                 </Link>
               </div>
@@ -194,8 +206,7 @@ export function RecentlyPublished({ livePosts }: RecentlyPublishedProps) {
                     </Link>
                   </div>
 
-                  <div className="pt-4 border-t border-white/15 text-xs text-[#D9DEEC]/70 space-y-1 font-sans">
-                    <p className="font-medium text-white/90">{item.author}</p>
+                  <div className="pt-4 border-t border-white/15 text-xs text-[#D9DEEC]/70 font-sans">
                     <p>{item.date}</p>
                   </div>
                 </article>

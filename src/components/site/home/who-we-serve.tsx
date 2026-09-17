@@ -8,7 +8,19 @@ import {
   StaggerItem,
 } from "@/components/site/motion-wrapper";
 
-export function WhoWeServe() {
+export interface WhoWeServeCmsData {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+export function WhoWeServe({ cmsData }: { cmsData?: WhoWeServeCmsData }) {
+  const badge = cmsData?.badge || "One Platform • Three Audiences";
+  const title = cmsData?.title || "Who We Serve";
+  const subtitle =
+    cmsData?.subtitle ||
+    "Building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.";
+
   const audiences = [
     {
       title: "For Parents",
@@ -47,12 +59,11 @@ export function WhoWeServe() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn className="max-w-2xl pb-4 border-b border-[#D9DEEC] mb-10">
           <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-            One Platform • Three Audiences
+            {badge}
           </span>
-          <h2 className="h2_subheader mt-2">Who We Serve</h2>
+          <h2 className="h2_subheader mt-2">{title}</h2>
           <p className="text-sm sm:text-base text-[#55627D] font-sans mt-2">
-            Building a stronger education ecosystem across Port Harcourt and
-            beyond, one school, one teacher, one parent at a time.
+            {subtitle}
           </p>
         </FadeIn>
 

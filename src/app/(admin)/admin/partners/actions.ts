@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { invalidateCache } from "@/lib/cache";
@@ -177,5 +177,72 @@ export async function togglePartnerActiveAction(
   } catch (err) {
     console.error("Failed to toggle partner status:", err);
     return { error: "Failed to update partner active status." };
+  }
+}
+
+/**
+ * Bulk toggle partner active status.
+ */
+export async function bulkUpdatePartnersActiveAction(
+  ids: string[],
+  isActive: boolean,
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No partners selected." };
+  }
+
+  try {
+    await db
+      .update(partners)
+      .set({
+        isActive,
+        updatedAt: new Date(),
+      })
+      .where(inArray(partners.id, ids));
+
+    await invalidateCache(["partners", "homepage"]);
+    revalidatePath("/");
+    revalidatePath("/partners");
+    revalidatePath("/admin/partners");
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk update partners status:", err);
+    return { success: false, error: "Failed to update partners status." };
+  }
+}
+
+/**
+ * Bulk delete partners.
+ */
+export async function bulkDeletePartnersAction(
+  ids: string[],
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No partners selected." };
+  }
+
+  try {
+    await db.delete(partners).where(inArray(partners.id, ids));
+
+    await invalidateCache(["partners", "homepage"]);
+    revalidatePath("/");
+    revalidatePath("/partners");
+    revalidatePath("/admin/partners");
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk delete partners:", err);
+    return { success: false, error: "Failed to delete partners." };
   }
 }

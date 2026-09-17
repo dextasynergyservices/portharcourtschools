@@ -165,6 +165,7 @@ export default async function AdminRegistrationsPage({
     schoolName: r.schoolName,
     role: r.role,
     ticketQuantity: r.ticketQuantity,
+    ticketTierName: r.ticketTierName || "Standard",
     totalAmount: r.totalAmount,
     status: r.status,
     notes: r.notes,

@@ -33,7 +33,15 @@ function ArrowDiagonal({
   );
 }
 
-export function WhatWeDoPillars() {
+export interface WhatWeDoCmsData {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+}
+
+export function WhatWeDoPillars({ cmsData }: { cmsData?: WhatWeDoCmsData }) {
+  const badge = cmsData?.badge || "Strategic Framework";
+  const title = cmsData?.title || "What We Do (Three Pillars)";
   const pillars = [
     {
       number: "01",
@@ -73,9 +81,9 @@ export function WhatWeDoPillars() {
         <FadeIn className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pb-4 border-b border-[#D9DEEC] mb-10 gap-2">
           <div>
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              Strategic Framework
+              {badge}
             </span>
-            <h2 className="h2_subheader mt-1">What We Do (Three Pillars)</h2>
+            <h2 className="h2_subheader mt-1">{title}</h2>
           </div>
           <Link href="/about" className="subheader_cta group">
             <span>Our Full Mission</span>

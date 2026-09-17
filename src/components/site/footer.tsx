@@ -24,7 +24,7 @@ export function SiteFooter() {
   };
 
   return (
-    <footer className="w-full border-t border-[#08276B] bg-[#08276B] text-white pt-14 pb-24 md:pb-14 safe-bottom">
+    <footer className="w-full border-t border-[#002c8c] bg-[#002c8c] text-white pt-14 pb-24 md:pb-14 safe-bottom">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
@@ -54,7 +54,7 @@ export function SiteFooter() {
                 NDPA 2023 Compliant
               </Badge>
               <span className="text-[11px] text-[#D9DEEC]/80 flex items-center gap-1">
-                <MapPin className="size-3 text-[#FDDA32]" />
+                <MapPin className="size-3 text-[#fcda04]" />
                 Port Harcourt, Nigeria
               </span>
             </div>
@@ -62,7 +62,7 @@ export function SiteFooter() {
 
           {/* Col 3: Schools Directory */}
           <div className="space-y-3">
-            <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[#FDDA32]">
+            <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[#fcda04]">
               Schools Directory
             </h4>
             <ul className="space-y-2 text-xs text-[#D9DEEC]">
@@ -152,7 +152,7 @@ export function SiteFooter() {
 
           {/* Col 5: Community Capture */}
           <div className="space-y-3">
-            <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[#FDDA32]">
+            <h4 className="font-heading text-xs font-bold uppercase tracking-wider text-[#fcda04]">
               Stay Informed
             </h4>
             <p className="text-xs text-[#D9DEEC]">
@@ -172,12 +172,12 @@ export function SiteFooter() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="parent@example.com"
-                  className="h-10 text-xs bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#FDDA32]"
+                  className="h-10 text-xs bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#fcda04]"
                 />
                 <Button
                   type="submit"
                   size="sm"
-                  className="w-full h-10 bg-[#FDDA32] text-[#08276B] hover:bg-[#E0B71E] font-bold text-xs"
+                  className="w-full h-10 bg-[#fcda04] text-[#002c8c] hover:bg-[#e6c500] font-bold text-xs"
                 >
                   <Send className="size-3.5 mr-1" />
                   Join Newsletter
@@ -195,7 +195,7 @@ export function SiteFooter() {
               href="https://www.dexta.services"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#FDDA32] hover:underline font-bold transition-colors"
+              className="text-[#fcda04] hover:underline font-bold transition-colors"
             >
               DEXTA
             </a>
@@ -216,12 +216,6 @@ export function SiteFooter() {
               className="hover:text-white transition-colors"
             >
               Contact
-            </Link>
-            <Link
-              href="/admin/login"
-              className="hover:text-white transition-colors"
-            >
-              Admin Login
             </Link>
           </div>
         </div>

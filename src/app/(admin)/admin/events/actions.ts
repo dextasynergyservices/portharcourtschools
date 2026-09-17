@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { invalidateCache } from "@/lib/cache";
@@ -70,6 +70,16 @@ export async function createEventAction(
     formData.get("isPaid") === "true" || formData.get("isPaid") === "on";
   const rawPrice = formData.get("price");
   const paymentLink = (formData.get("paymentLink") as string) || null;
+  const rawTicketTiers = formData.get("ticketTiers") as string;
+  let parsedTicketTiers = [];
+  if (rawTicketTiers) {
+    try {
+      parsedTicketTiers = JSON.parse(rawTicketTiers);
+    } catch {
+      parsedTicketTiers = [];
+    }
+  }
+
   const status =
     (formData.get("status") as
       | "draft"
@@ -98,6 +108,7 @@ export async function createEventAction(
     isPaid,
     price: isPaid ? (rawPrice ? Number(rawPrice) : 0) : 0,
     paymentLink: isPaid ? paymentLink : null,
+    ticketTiers: parsedTicketTiers,
     status,
   });
 
@@ -138,6 +149,7 @@ export async function createEventAction(
         isPaid: data.isPaid,
         price: data.price,
         paymentLink: data.isPaid ? data.paymentLink : null,
+        ticketTiers: data.ticketTiers,
         status: data.status,
       })
       .returning({ id: events.id, slug: events.slug });
@@ -189,6 +201,15 @@ export async function updateEventAction(
     formData.get("isPaid") === "true" || formData.get("isPaid") === "on";
   const rawPrice = formData.get("price");
   const paymentLink = (formData.get("paymentLink") as string) || null;
+  const rawTicketTiers = formData.get("ticketTiers") as string;
+  let parsedTicketTiers = [];
+  if (rawTicketTiers) {
+    try {
+      parsedTicketTiers = JSON.parse(rawTicketTiers);
+    } catch {
+      parsedTicketTiers = [];
+    }
+  }
   const status =
     (formData.get("status") as
       | "draft"
@@ -215,6 +236,7 @@ export async function updateEventAction(
     isPaid,
     price: isPaid ? (rawPrice ? Number(rawPrice) : 0) : 0,
     paymentLink: isPaid ? paymentLink : null,
+    ticketTiers: parsedTicketTiers,
     status,
   });
 
@@ -264,6 +286,7 @@ export async function updateEventAction(
         isPaid: data.isPaid,
         price: data.price,
         paymentLink: data.isPaid ? data.paymentLink : null,
+        ticketTiers: data.ticketTiers,
         status: data.status,
         updatedAt: new Date(),
       })
@@ -384,6 +407,7 @@ export async function updateEventRegistrationStatusAction(
           eventDateStr,
           eventVenue: event.venue,
           ticketQuantity: existing.ticketQuantity,
+          ticketTierName: existing.ticketTierName,
           isPaid: event.isPaid,
           totalAmount: existing.totalAmount,
           registrationId: existing.id,
@@ -452,5 +476,197 @@ export async function toggleEventFeaturedAction(
   } catch (err) {
     console.error("Failed to toggle event featured status:", err);
     return { error: "Failed to update flagship event status." };
+  }
+}
+
+export async function reorderEventsAction(
+  orderedIds: string[],
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "You must be signed in." };
+  }
+
+  const role = (session.user as { role?: string }).role;
+  if (!role || !["super_admin", "editor"].includes(role)) {
+    return {
+      success: false,
+      error: "Insufficient permissions to reorder events.",
+    };
+  }
+
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return { success: false, error: "Invalid event order payload." };
+  }
+
+  try {
+    for (let i = 0; i < orderedIds.length; i++) {
+      const id = orderedIds[i];
+      await db
+        .update(events)
+        .set({
+          sortOrder: i + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(events.id, id));
+    }
+
+    await invalidateCache(["events", "homepage"]);
+    revalidatePath("/events");
+    revalidatePath("/");
+    revalidatePath("/admin/events");
+
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Failed to reorder events:", err);
+    return { success: false, error: "Failed to persist new event order." };
+  }
+}
+
+/**
+ * Bulk update events status (Super Admin / Editor).
+ */
+export async function bulkUpdateEventsStatusAction(
+  ids: string[],
+  status: "draft" | "in_review" | "published" | "archived",
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator" && (status === "published" || status === "archived")) {
+    return {
+      success: false,
+      error: "Creators cannot publish or archive events in bulk.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No events selected." };
+  }
+
+  try {
+    await db
+      .update(events)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(inArray(events.id, ids));
+
+    revalidatePath("/events");
+    revalidatePath("/");
+    revalidatePath("/admin/events");
+    await invalidateCache(["events", "homepage"]);
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk update events status:", err);
+    return { success: false, error: "Failed to update events status." };
+  }
+}
+
+/**
+ * Bulk delete events (Super Admin / Editor).
+ */
+export async function bulkDeleteEventsAction(
+  ids: string[],
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator") {
+    return {
+      success: false,
+      error: "Creators do not have permission to delete events.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No events selected." };
+  }
+
+  try {
+    await db
+      .delete(eventRegistrations)
+      .where(inArray(eventRegistrations.eventId, ids));
+
+    await db.delete(events).where(inArray(events.id, ids));
+
+    revalidatePath("/events");
+    revalidatePath("/");
+    revalidatePath("/admin/events");
+    await invalidateCache(["events", "homepage"]);
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk delete events:", err);
+    return { success: false, error: "Failed to delete events." };
+  }
+}
+
+/**
+ * Bulk update registrations status.
+ */
+export async function bulkUpdateRegistrationsStatusAction(
+  ids: string[],
+  status: "confirmed" | "pending_payment" | "cancelled",
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No registrations selected." };
+  }
+
+  try {
+    await db
+      .update(eventRegistrations)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(inArray(eventRegistrations.id, ids));
+
+    revalidatePath("/admin/events/registrations");
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk update registrations status:", err);
+    return { success: false, error: "Failed to update registrations status." };
+  }
+}
+
+/**
+ * Bulk delete registrations.
+ */
+export async function bulkDeleteRegistrationsAction(
+  ids: string[],
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No registrations selected." };
+  }
+
+  try {
+    await db
+      .delete(eventRegistrations)
+      .where(inArray(eventRegistrations.id, ids));
+
+    revalidatePath("/admin/events/registrations");
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk delete registrations:", err);
+    return { success: false, error: "Failed to delete registrations." };
   }
 }

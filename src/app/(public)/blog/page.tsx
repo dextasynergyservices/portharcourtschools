@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq } from "drizzle-orm";
 import { BookOpen } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -6,6 +6,8 @@ import Link from "next/link";
 import { FadeIn } from "@/components/site/motion-wrapper";
 import { categories, db, posts } from "@/lib/db";
 import { BlogPostsFeed } from "./blog-posts-feed";
+
+export const revalidate = 180;
 
 export const metadata: Metadata = {
   title: "Editorial Blog — PortHarcourtSchools | Stories, Insights & Clarity",
@@ -92,7 +94,11 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
       category: true,
       author: true,
     },
-    orderBy: [desc(posts.publishedAt), desc(posts.createdAt)],
+    orderBy: [
+      asc(posts.sortOrder),
+      desc(posts.publishedAt),
+      desc(posts.createdAt),
+    ],
     limit: INITIAL_BATCH_SIZE,
   });
 

@@ -12,14 +12,18 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  bulkDeleteUsersAction,
+  bulkUpdateUserStatusAction,
   deleteUserAction,
   resendInviteAction,
   toggleUserStatusAction,
   updateUserRoleAction,
 } from "@/app/(admin)/admin/users/actions";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
@@ -72,9 +76,28 @@ const ROLE_CONFIG: Record<
 };
 
 export function UsersTable({ users, currentUserId }: UsersTableProps) {
+  const router = useRouter();
   const [data, setData] = useState<User[]>(users);
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [isBulkPending, setIsBulkPending] = useState(false);
+
+  // Professional Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: ReactNode;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: "destructive" | "warning" | "default" | "success";
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
 
   // Role Edit Dialog State
   const [editingRoleUser, setEditingRoleUser] = useState<User | null>(null);
@@ -98,52 +121,97 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
     });
   }, [data, selectedRole, selectedStatus]);
 
-  async function handleToggleStatus(user: User) {
+  function handleToggleStatus(user: User) {
     const nextStatus = user.status === "active" ? "inactive" : "active";
-    const confirmMsg =
-      nextStatus === "inactive"
-        ? `Are you sure you want to deactivate ${user.name}? They will not be able to log in.`
-        : `Reactivate account for ${user.name}?`;
 
-    if (!confirm(confirmMsg)) return;
-
-    const res = await toggleUserStatusAction({
-      userId: user.id,
-      newStatus: nextStatus,
-    });
-
-    if (res.success) {
-      setData((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, status: nextStatus } : u)),
-      );
-      toast.success(
-        `User ${nextStatus === "active" ? "reactivated" : "deactivated"} successfully`,
-      );
-    } else {
-      toast.error("Status update failed", {
-        description: res.error,
+    if (nextStatus === "inactive") {
+      setConfirmDialog({
+        open: true,
+        title: "Deactivate User Account",
+        variant: "warning",
+        confirmLabel: "Deactivate Account",
+        description: (
+          <>
+            Are you sure you want to deactivate{" "}
+            <strong className="text-[#151B2E]">{user.name}</strong>? They will
+            be prevented from logging in to the workspace until reactivated.
+          </>
+        ),
+        onConfirm: async () => {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+          try {
+            const res = await toggleUserStatusAction({
+              userId: user.id,
+              newStatus: nextStatus,
+            });
+            if (res.success) {
+              setData((prev) =>
+                prev.map((u) =>
+                  u.id === user.id ? { ...u, status: nextStatus } : u,
+                ),
+              );
+              toast.success(`User ${user.name} deactivated successfully`);
+              setConfirmDialog((prev) => ({ ...prev, open: false }));
+            } else {
+              toast.error("Status update failed", { description: res.error });
+            }
+          } finally {
+            setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+          }
+        },
       });
-    }
-  }
-
-  async function handleDelete(user: User) {
-    if (
-      !confirm(
-        `Are you sure you want to permanently remove ${user.name} from the workspace? This action cannot be undone.`,
-      )
-    ) {
       return;
     }
 
-    const res = await deleteUserAction(user.id);
-    if (res.success) {
-      setData((prev) => prev.filter((u) => u.id !== user.id));
-      toast.success("User removed successfully");
-    } else {
-      toast.error("Failed to delete user", {
-        description: res.error,
+    // Reactivation can run directly
+    (async () => {
+      const res = await toggleUserStatusAction({
+        userId: user.id,
+        newStatus: nextStatus,
       });
-    }
+      if (res.success) {
+        setData((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, status: nextStatus } : u,
+          ),
+        );
+        toast.success(`User ${user.name} reactivated successfully`);
+      } else {
+        toast.error("Status update failed", { description: res.error });
+      }
+    })();
+  }
+
+  function handleDelete(user: User) {
+    setConfirmDialog({
+      open: true,
+      title: "Permanently Delete User",
+      variant: "destructive",
+      confirmLabel: "Delete User",
+      description: (
+        <>
+          Are you sure you want to permanently remove{" "}
+          <strong className="text-[#151B2E]">{user.name}</strong> from the
+          workspace? All permissions and account access will be revoked
+          immediately. This action cannot be undone.
+        </>
+      ),
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          const res = await deleteUserAction(user.id);
+          if (res.success) {
+            setData((prev) => prev.filter((u) => u.id !== user.id));
+            toast.success("User removed successfully");
+            setConfirmDialog((prev) => ({ ...prev, open: false }));
+          } else {
+            toast.error("Failed to delete user", { description: res.error });
+          }
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   }
 
   async function handleResendInvite(user: User) {
@@ -190,7 +258,183 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
     }
   }
 
+  const executeBulkStatus = async (
+    selectedRows: User[],
+    newStatus: "active" | "inactive",
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows
+        .map((u) => u.id)
+        .filter((id) => id !== currentUserId);
+      const res = await bulkUpdateUserStatusAction({ userIds: ids, newStatus });
+      if (res.success) {
+        toast.success(
+          `Successfully ${newStatus === "active" ? "activated" : "blocked"} ${res.count} user(s).`,
+        );
+        setData((prev) =>
+          prev.map((u) =>
+            ids.includes(u.id) ? { ...u, status: newStatus } : u,
+          ),
+        );
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to update users.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkStatus = (
+    selectedRows: User[],
+    newStatus: "active" | "inactive",
+    clearSelection: () => void,
+  ) => {
+    const selfIncluded = selectedRows.some((u) => u.id === currentUserId);
+    const targetCount = selfIncluded
+      ? selectedRows.length - 1
+      : selectedRows.length;
+
+    if (targetCount <= 0) {
+      toast.error("You cannot change your own status.");
+      return;
+    }
+
+    if (newStatus === "active") {
+      executeBulkStatus(selectedRows, "active", clearSelection);
+      return;
+    }
+
+    setConfirmDialog({
+      open: true,
+      title: `Block ${targetCount} Selected User${targetCount === 1 ? "" : "s"}`,
+      variant: "warning",
+      confirmLabel: "Block Users",
+      description: (
+        <>
+          Are you sure you want to block{" "}
+          <strong className="text-[#151B2E]">{targetCount}</strong> selected
+          user{targetCount === 1 ? "" : "s"}? They will be barred from logging
+          in.
+          {selfIncluded && (
+            <span className="block mt-2 text-xs text-amber-700 dark:text-amber-300 font-medium">
+              Note: Your own administrator account is protected and will be
+              excluded.
+            </span>
+          )}
+        </>
+      ),
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await executeBulkStatus(selectedRows, "inactive", clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
+  };
+
+  const executeBulkDelete = async (
+    selectedRows: User[],
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows
+        .map((u) => u.id)
+        .filter((id) => id !== currentUserId);
+      const res = await bulkDeleteUsersAction(ids);
+      if (res.success) {
+        toast.success(`Successfully deleted ${res.count} user(s).`);
+        setData((prev) => prev.filter((u) => !ids.includes(u.id)));
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to delete users.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkDelete = (
+    selectedRows: User[],
+    clearSelection: () => void,
+  ) => {
+    const selfIncluded = selectedRows.some((u) => u.id === currentUserId);
+    const targetCount = selfIncluded
+      ? selectedRows.length - 1
+      : selectedRows.length;
+
+    if (targetCount <= 0) {
+      toast.error("You cannot delete your own account.");
+      return;
+    }
+
+    setConfirmDialog({
+      open: true,
+      title: `Delete ${targetCount} Selected User${targetCount === 1 ? "" : "s"}`,
+      variant: "destructive",
+      confirmLabel: "Delete Users Permanently",
+      description: (
+        <>
+          Are you sure you want to permanently delete{" "}
+          <strong className="text-[#151B2E]">{targetCount}</strong> selected
+          user{targetCount === 1 ? "" : "s"}? Their workspace credentials and
+          access will be completely erased. This action cannot be undone.
+          {selfIncluded && (
+            <span className="block mt-2 text-xs text-amber-700 dark:text-amber-300 font-medium">
+              Note: Your own administrator account is protected and will be
+              excluded.
+            </span>
+          )}
+        </>
+      ),
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await executeBulkDelete(selectedRows, clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
+  };
+
   const columns: ColumnDef<User>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={table.getIsAllPageRowsSelected()}
+          onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+          aria-label="Select all"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(!!e.target.checked)}
+          aria-label="Select row"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -444,6 +688,44 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
             </div>
           </div>
         }
+        renderBulkActions={(selectedRows, { clearSelection }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "active", clearSelection)
+              }
+              className="h-8 text-xs bg-white text-[#184098] hover:bg-[#EEF2FA] border-none font-bold"
+            >
+              <UserCheck className="size-3.5 mr-1 text-emerald-600" />
+              Activate Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "inactive", clearSelection)
+              }
+              className="h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white border-none font-bold"
+            >
+              <UserX className="size-3.5 mr-1" />
+              Block Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isBulkPending}
+              onClick={() => handleBulkDelete(selectedRows, clearSelection)}
+              className="h-8 text-xs font-bold"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
       />
 
       {/* Change Role Dialog */}
@@ -562,6 +844,19 @@ export function UsersTable({ users, currentUserId }: UsersTableProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+      />
     </>
   );
 }

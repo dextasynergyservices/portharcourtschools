@@ -3,60 +3,69 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import { getOrSetCache, invalidateCache } from "@/lib/cache";
 import { CMS_PAGES_CONFIG } from "@/lib/cms-defaults";
 import { db, pages } from "@/lib/db";
 
 /**
  * Fetch page content from database with fallback to default config.
  * Safe for server components and public routes.
+ * Fully cached in L1 memory and Redis to avoid hammering Neon on every render.
  */
 export async function getPageContent(slug: string) {
-  try {
-    const [page] = await db
-      .select()
-      .from(pages)
-      .where(eq(pages.slug, slug))
-      .limit(1);
+  return getOrSetCache(
+    `page_content:${slug}`,
+    ["pages", `page:${slug}`],
+    async () => {
+      try {
+        const [page] = await db
+          .select()
+          .from(pages)
+          .where(eq(pages.slug, slug))
+          .limit(1);
 
-    const config = CMS_PAGES_CONFIG[slug];
+        const config = CMS_PAGES_CONFIG[slug];
 
-    if (!page) {
-      return {
-        slug,
-        title: config?.title || slug,
-        sections: config?.defaultSections || {},
-        seoMeta: config?.defaultSeo || {},
-      };
-    }
+        if (!page) {
+          return {
+            slug,
+            title: config?.title || slug,
+            sections: config?.defaultSections || {},
+            seoMeta: config?.defaultSeo || {},
+          };
+        }
 
-    // Merge default sections with saved sections so missing keys always have fallbacks
-    const mergedSections = {
-      ...(config?.defaultSections || {}),
-      ...(page.sections &&
-      typeof page.sections === "object" &&
-      !Array.isArray(page.sections)
-        ? (page.sections as Record<string, unknown>)
-        : {}),
-    };
+        // Merge default sections with saved sections so missing keys always have fallbacks
+        const mergedSections = {
+          ...(config?.defaultSections || {}),
+          ...(page.sections &&
+          typeof page.sections === "object" &&
+          !Array.isArray(page.sections)
+            ? (page.sections as Record<string, unknown>)
+            : {}),
+        };
 
-    return {
-      id: page.id,
-      slug: page.slug,
-      title: page.title,
-      sections: mergedSections,
-      seoMeta: page.seoMeta || config?.defaultSeo || {},
-      updatedAt: page.updatedAt,
-    };
-  } catch (err) {
-    console.error(`Error fetching page content for ${slug}:`, err);
-    const config = CMS_PAGES_CONFIG[slug];
-    return {
-      slug,
-      title: config?.title || slug,
-      sections: config?.defaultSections || {},
-      seoMeta: config?.defaultSeo || {},
-    };
-  }
+        return {
+          id: page.id,
+          slug: page.slug,
+          title: page.title,
+          sections: mergedSections,
+          seoMeta: page.seoMeta || config?.defaultSeo || {},
+          updatedAt: page.updatedAt,
+        };
+      } catch (err) {
+        console.error(`Error fetching page content for ${slug}:`, err);
+        const config = CMS_PAGES_CONFIG[slug];
+        return {
+          slug,
+          title: config?.title || slug,
+          sections: config?.defaultSections || {},
+          seoMeta: config?.defaultSeo || {},
+        };
+      }
+    },
+    900,
+  );
 }
 
 /**
@@ -107,7 +116,8 @@ export async function savePageContentAction(params: {
       });
     }
 
-    // Revalidate public route and admin
+    // Invalidate multi-tier cache and trigger Next.js route revalidation
+    await invalidateCache(["pages", `page:${slug}`]);
     const publicPath = CMS_PAGES_CONFIG[slug]?.path || `/${slug}`;
     revalidatePath(publicPath);
     revalidatePath(`/admin/pages/${slug}`);
@@ -138,6 +148,8 @@ export async function resetPageToDefaultsAction(slug: string) {
   try {
     await db.delete(pages).where(eq(pages.slug, slug));
 
+    // Invalidate multi-tier cache and trigger Next.js route revalidation
+    await invalidateCache(["pages", `page:${slug}`]);
     const publicPath = config.path || `/${slug}`;
     revalidatePath(publicPath);
     revalidatePath(`/admin/pages/${slug}`);

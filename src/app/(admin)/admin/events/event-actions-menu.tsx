@@ -6,7 +6,7 @@ import {
   ExternalLink,
   Loader2,
   MoreVertical,
-  Sparkles,
+  Star,
   Trash2,
   Users,
 } from "lucide-react";
@@ -129,7 +129,7 @@ export function EventActionsMenu({
                   });
                 }}
               >
-                <Sparkles className="size-3.5 text-[#C49A45]" />
+                <Star className="size-3.5 text-[#C49A45] fill-current" />
                 <span>
                   {isFeatured ? "Remove Flagship" : "Set as Flagship"}
                 </span>

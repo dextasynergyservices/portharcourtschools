@@ -20,7 +20,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "db:seed": "bun run scripts/seed-admin.ts"
+    "db:seed": "bun run scripts/seed-admin.ts",
+    "db:seed:founder": "bun run scripts/seed-founder.ts",
+    "db:seed:blog": "bun run scripts/seed-blog.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

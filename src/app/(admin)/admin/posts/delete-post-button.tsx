@@ -3,6 +3,7 @@
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deletePostAction } from "./actions";
 
@@ -25,9 +26,10 @@ export function DeletePostButton({ postId, postTitle }: DeletePostButtonProps) {
     startTransition(async () => {
       const res = await deletePostAction(postId);
       if (res.error) {
-        alert(res.error);
+        toast.error(res.error || "Failed to delete post.");
         setConfirming(false);
       } else {
+        toast.success("Post deleted successfully.");
         router.refresh();
       }
     });
