@@ -1,17 +1,21 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { ArrowLeft, Calendar, Clock, Tag } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
+import { getOrSetCache } from "@/lib/cache";
 import { db, posts } from "@/lib/db";
 import { ShareButtons } from "./share-buttons";
+
+export const revalidate = 600;
 
 interface ArticlePageProps {
   params: Promise<{
@@ -24,6 +28,25 @@ function calculateReadingTime(html: string): number {
   const words = text.trim().split(/\s+/).length;
   return Math.max(1, Math.ceil(words / 200));
 }
+
+const getPostBySlug = cache(async (slug: string) => {
+  return getOrSetCache(
+    `post:${slug}`,
+    ["posts", `post:${slug}`],
+    async () => {
+      const [post] = await db.query.posts.findMany({
+        where: eq(posts.slug, slug),
+        with: {
+          category: true,
+          author: true,
+        },
+        limit: 1,
+      });
+      return post || null;
+    },
+    600,
+  );
+});
 
 function ArrowDiagonal({
   className = "size-3.5 ml-1",
@@ -54,17 +77,7 @@ export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-
-  const post = await db.query.posts
-    .findMany({
-      where: eq(posts.slug, slug),
-      with: {
-        category: true,
-        author: true,
-      },
-      limit: 1,
-    })
-    .then((res) => res[0]);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -112,16 +125,7 @@ export async function generateMetadata({
 export default async function ArticleDetailPage({ params }: ArticlePageProps) {
   const { slug } = await params;
 
-  const post = await db.query.posts
-    .findMany({
-      where: eq(posts.slug, slug),
-      with: {
-        category: true,
-        author: true,
-      },
-      limit: 1,
-    })
-    .then((res) => res[0]);
+  const post = await getPostBySlug(slug);
 
   if (!post || post.status !== "published") {
     notFound();
@@ -150,7 +154,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
       category: true,
       author: true,
     },
-    orderBy: [desc(posts.publishedAt)],
+    orderBy: [asc(posts.sortOrder), desc(posts.publishedAt)],
     limit: 3,
   });
 

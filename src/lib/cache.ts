@@ -28,10 +28,26 @@ if (typeof setInterval !== "undefined") {
   }
 }
 
+// Circuit breaker state to protect Upstash Redis quota limits
+let redisCircuitOpenUntil = 0;
+
+function isRedisCircuitActive(): boolean {
+  if (!redis) return false;
+  return Date.now() >= redisCircuitOpenUntil;
+}
+
+function tripRedisCircuit(reason: string) {
+  // Silence Redis for 5 minutes if quota limit or network flood is detected
+  redisCircuitOpenUntil = Date.now() + 5 * 60 * 1000;
+  console.warn(
+    `[Cache] Upstash Redis circuit breaker tripped: ${reason}. Falling back transparently to L1 memory cache for 5 minutes.`,
+  );
+}
+
 /**
  * Two-tier cache helper:
  * L1: In-memory store (60s TTL) to prevent repeated Redis commands and function cost
- * L2: Upstash Redis (longer TTL, e.g. 1h) for persistent cross-instance cache
+ * L2: Upstash Redis (longer TTL, e.g. 1h) with pipelining & circuit breaker
  * Origin: Database query executed only on L1 & L2 misses
  */
 export async function getOrSetCache<T>(
@@ -48,8 +64,8 @@ export async function getOrSetCache<T>(
     return l1Entry.value;
   }
 
-  // 2. Check L2 Upstash Redis Cache (if available)
-  if (redis) {
+  // 2. Check L2 Upstash Redis Cache (if available and circuit is healthy)
+  if (isRedisCircuitActive() && redis) {
     try {
       const redisVal = await redis.get<T>(key);
       if (redisVal !== null && redisVal !== undefined) {
@@ -64,7 +80,15 @@ export async function getOrSetCache<T>(
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`[Cache] Redis lookup skipped for "${key}": ${msg}`);
+      if (
+        msg.toLowerCase().includes("limit") ||
+        msg.toLowerCase().includes("quota") ||
+        msg.toLowerCase().includes("exceeded")
+      ) {
+        tripRedisCircuit(msg);
+      } else {
+        console.warn(`[Cache] Redis lookup skipped for "${key}": ${msg}`);
+      }
     }
   }
 
@@ -79,18 +103,27 @@ export async function getOrSetCache<T>(
     tags,
   });
 
-  // 5. Populate L2 Redis Cache (if available)
-  if (redis) {
+  // 5. Populate L2 Redis Cache using Pipeline to minimize command count
+  if (isRedisCircuitActive() && redis) {
     try {
-      await redis.set(key, freshData, { ex: ttlSeconds });
-      // Map key to tag for fast tag-based bulk invalidation
+      const pipeline = redis.pipeline();
+      pipeline.set(key, freshData, { ex: ttlSeconds });
       for (const tag of tags) {
-        await redis.sadd(`tag_keys:${tag}`, key);
-        await redis.expire(`tag_keys:${tag}`, ttlSeconds * 2);
+        pipeline.sadd(`tag_keys:${tag}`, key);
+        pipeline.expire(`tag_keys:${tag}`, ttlSeconds * 2);
       }
+      await pipeline.exec();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`[Cache] Redis write skipped for "${key}": ${msg}`);
+      if (
+        msg.toLowerCase().includes("limit") ||
+        msg.toLowerCase().includes("quota") ||
+        msg.toLowerCase().includes("exceeded")
+      ) {
+        tripRedisCircuit(msg);
+      } else {
+        console.warn(`[Cache] Redis write skipped for "${key}": ${msg}`);
+      }
     }
   }
 
@@ -109,21 +142,33 @@ export async function invalidateCache(tags: string[]): Promise<void> {
     }
   }
 
-  // 2. Purge matching Redis keys
-  if (redis) {
+  // 2. Purge matching Redis keys with pipelining
+  if (isRedisCircuitActive() && redis) {
     try {
       for (const tag of tags) {
         const keys = await redis.smembers(`tag_keys:${tag}`);
         if (keys && keys.length > 0) {
-          await redis.del(...keys);
+          const pipeline = redis.pipeline();
+          pipeline.del(...keys);
+          pipeline.del(`tag_keys:${tag}`);
+          await pipeline.exec();
+        } else {
+          await redis.del(`tag_keys:${tag}`);
         }
-        await redis.del(`tag_keys:${tag}`);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `[Cache] Redis invalidation skipped for tags ${tags.join(", ")}: ${msg}`,
-      );
+      if (
+        msg.toLowerCase().includes("limit") ||
+        msg.toLowerCase().includes("quota") ||
+        msg.toLowerCase().includes("exceeded")
+      ) {
+        tripRedisCircuit(msg);
+      } else {
+        console.warn(
+          `[Cache] Redis invalidation skipped for tags ${tags.join(", ")}: ${msg}`,
+        );
+      }
     }
   }
 

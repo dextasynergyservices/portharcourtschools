@@ -12,13 +12,19 @@ export async function POST(req: NextRequest) {
 
     // Verify webhook signature if secret key is present
     if (paystackSecret) {
-      const signature = req.headers.get("x-paystack-signature");
+      const signature = req.headers.get("x-paystack-signature") || "";
       const hash = crypto
         .createHmac("sha512", paystackSecret)
         .update(rawBody)
         .digest("hex");
 
-      if (signature !== hash) {
+      const sigBuffer = Buffer.from(signature, "hex");
+      const hashBuffer = Buffer.from(hash, "hex");
+
+      if (
+        sigBuffer.length !== hashBuffer.length ||
+        !crypto.timingSafeEqual(sigBuffer, hashBuffer)
+      ) {
         console.warn("Invalid Paystack webhook signature.");
         return NextResponse.json(
           { error: "Invalid signature" },
@@ -103,6 +109,7 @@ export async function POST(req: NextRequest) {
             eventDateStr,
             eventVenue: event.venue,
             ticketQuantity: registration.ticketQuantity,
+            ticketTierName: registration.ticketTierName,
             isPaid: true,
             totalAmount: registration.totalAmount,
             registrationId: registration.id,

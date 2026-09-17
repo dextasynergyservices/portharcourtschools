@@ -12,11 +12,11 @@
   --font-display: var(--font-space-grotesk), monospace, sans-serif;
 
   /* PortHarcourtSchools Brand Design Tokens */
-  --color-brand-navy: #184098;
-  --color-brand-shadow: #08276b;
-  --color-brand-gold: #fdda32;
-  --color-brand-amber: #e0b71e;
-  --color-brand-bg: #fafbff;
+  --color-brand-navy: #003cb8;
+  --color-brand-shadow: #002c8c;
+  --color-brand-gold: #fcda04;
+  --color-brand-amber: #e6c500;
+  --color-brand-bg: #fdfdfd;
   --color-brand-surface: #ffffff;
   --color-brand-ink: #151b2e;
   --color-brand-border: #d9deec;
@@ -57,8 +57,8 @@
 }
 
 :root {
-  /* Logo-matched tokens (Section 7) */
-  --background: #fafbff;
+  /* Logo-matched brand tokens */
+  --background: #fdfdfd;
   --foreground: #151b2e;
 
   --card: #ffffff;
@@ -67,16 +67,16 @@
   --popover: #ffffff;
   --popover-foreground: #151b2e;
 
-  --primary: #184098;
+  --primary: #003cb8;
   --primary-foreground: #ffffff;
 
-  --secondary: #08276b;
+  --secondary: #002c8c;
   --secondary-foreground: #ffffff;
 
   --muted: #eef2fa;
   --muted-foreground: #55627d;
 
-  --accent: #fdda32;
+  --accent: #fcda04;
   --accent-foreground: #151b2e;
 
   --destructive: #c0392b;
@@ -84,56 +84,56 @@
 
   --border: #d9deec;
   --input: #d9deec;
-  --ring: #184098;
+  --ring: #003cb8;
   --radius: 0.5rem;
 
-  --sidebar: #08276b;
-  --sidebar-foreground: #fafbff;
-  --sidebar-primary: #fdda32;
+  --sidebar: #002c8c;
+  --sidebar-foreground: #fdfdfd;
+  --sidebar-primary: #fcda04;
   --sidebar-primary-foreground: #151b2e;
-  --sidebar-accent: #184098;
+  --sidebar-accent: #003cb8;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #184098;
-  --sidebar-ring: #fdda32;
+  --sidebar-border: #003cb8;
+  --sidebar-ring: #fcda04;
 }
 
 .dark {
   --background: #0b132b;
-  --foreground: #fafbff;
+  --foreground: #fdfdfd;
 
   --card: #101b3b;
-  --card-foreground: #fafbff;
+  --card-foreground: #fdfdfd;
 
   --popover: #101b3b;
-  --popover-foreground: #fafbff;
+  --popover-foreground: #fdfdfd;
 
-  --primary: #fdda32;
-  --primary-foreground: #08276b;
+  --primary: #fcda04;
+  --primary-foreground: #002c8c;
 
-  --secondary: #184098;
-  --secondary-foreground: #fafbff;
+  --secondary: #003cb8;
+  --secondary-foreground: #fdfdfd;
 
   --muted: #1a284d;
   --muted-foreground: #a6b4d0;
 
-  --accent: #fdda32;
-  --accent-foreground: #08276b;
+  --accent: #fcda04;
+  --accent-foreground: #002c8c;
 
   --destructive: #e74c3c;
-  --destructive-foreground: #fafbff;
+  --destructive-foreground: #fdfdfd;
 
   --border: #233463;
   --input: #233463;
-  --ring: #fdda32;
+  --ring: #fcda04;
 
   --sidebar: #081c4a;
-  --sidebar-foreground: #fafbff;
-  --sidebar-primary: #fdda32;
+  --sidebar-foreground: #fdfdfd;
+  --sidebar-primary: #fcda04;
   --sidebar-primary-foreground: #081c4a;
-  --sidebar-accent: #184098;
+  --sidebar-accent: #003cb8;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #184098;
-  --sidebar-ring: #fdda32;
+  --sidebar-border: #003cb8;
+  --sidebar-ring: #fcda04;
 }
 
 @layer base {

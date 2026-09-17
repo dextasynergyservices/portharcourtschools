@@ -33,7 +33,23 @@ function ArrowDiagonal({
   );
 }
 
-export function FeaturedEventBanner() {
+export interface FeaturedEventBannerCmsData {
+  badge?: string;
+  title?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+}
+
+export function FeaturedEventBanner({
+  cmsData,
+}: {
+  cmsData?: FeaturedEventBannerCmsData;
+}) {
+  const badge = cmsData?.badge || "Upcoming Events";
+  const title = cmsData?.title || "Events & Summits";
+  const ctaLabel = cmsData?.ctaLabel || "All Events";
+  const ctaLink = cmsData?.ctaLink || "/events";
+
   return (
     <section
       id="featured-events"
@@ -41,7 +57,7 @@ export function FeaturedEventBanner() {
     >
       {/* Signature ICLE Watermark */}
       <span className="offset_subheader" aria-hidden="true">
-        Upcoming Events
+        {badge}
       </span>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
@@ -53,17 +69,17 @@ export function FeaturedEventBanner() {
             </div>
             <div>
               <h2 className="font-heading text-2xl sm:text-3xl font-black text-[#151B2E] tracking-tight uppercase">
-                Events &amp; Summits
+                {title}
               </h2>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.1}>
             <Link
-              href="/events"
+              href={ctaLink}
               className="group inline-flex items-center font-display text-xs font-bold uppercase tracking-widest text-[#184098] hover:text-[#08276B]"
             >
-              <span>All Events</span>
+              <span>{ctaLabel}</span>
               <ArrowDiagonal />
             </Link>
           </FadeIn>

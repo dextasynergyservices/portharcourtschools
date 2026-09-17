@@ -4,14 +4,20 @@ import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
-  DollarSign,
+  ChevronDown,
+  ChevronUp,
   Eye,
   Globe,
+  GripVertical,
+  Layers,
+  ListPlus,
   Loader2,
   MapPin,
+  Plus,
   Save,
   Send,
-  Sparkles,
+  Star,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -25,6 +31,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { TicketTier } from "@/lib/db/schema";
 import {
   checkEventSlugAvailabilityAction,
   createEventAction,
@@ -46,6 +53,7 @@ interface EventFormProps {
     isPaid: boolean;
     price?: number | null;
     paymentLink?: string | null;
+    ticketTiers?: TicketTier[] | null;
     status: "draft" | "in_review" | "published" | "archived";
   };
   userRole: string;
@@ -70,6 +78,247 @@ function formatDateForInput(date?: Date | null): string {
   const hours = pad(d.getHours());
   const minutes = pad(d.getMinutes());
   return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+interface TierBenefitsEditorProps {
+  tierIndex: number;
+  benefits: string[];
+  onChange: (benefits: string[]) => void;
+}
+
+function TierBenefitsEditor({
+  tierIndex,
+  benefits = [],
+  onChange,
+}: TierBenefitsEditorProps) {
+  const [inputValue, setInputValue] = useState("");
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [draggedBenefitIndex, setDraggedBenefitIndex] = useState<number | null>(
+    null,
+  );
+
+  const handleMoveBenefit = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= benefits.length) return;
+    const copy = [...benefits];
+    const [moved] = copy.splice(fromIndex, 1);
+    copy.splice(toIndex, 0, moved);
+    onChange(copy);
+  };
+
+  const handleAdd = () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+    const newItems = trimmed
+      .split("\n")
+      .map((b) => b.trim())
+      .filter(Boolean);
+    onChange([...benefits, ...newItems]);
+    setInputValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAdd();
+    }
+  };
+
+  const handleUpdateItem = (index: number, value: string) => {
+    const copy = [...benefits];
+    copy[index] = value;
+    onChange(copy);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    onChange(benefits.filter((_, i) => i !== index));
+  };
+
+  const handleSwitchToBulk = () => {
+    setBulkText(benefits.join("\n"));
+    setIsBulkMode(true);
+  };
+
+  const handleApplyBulk = () => {
+    const parsed = bulkText
+      .split("\n")
+      .map((b) => b.trim())
+      .filter(Boolean);
+    onChange(parsed);
+    setIsBulkMode(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label
+          htmlFor={`tier-benefit-input-${tierIndex}`}
+          className="block text-[11px] font-bold text-[#151B2E]"
+        >
+          Benefits &amp; Inclusions{" "}
+          <span className="text-[#55627D] font-normal">
+            ({benefits.length} {benefits.length === 1 ? "perk" : "perks"})
+          </span>
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            if (isBulkMode) {
+              handleApplyBulk();
+            } else {
+              handleSwitchToBulk();
+            }
+          }}
+          className="text-[10px] font-semibold text-[#003cb8] hover:underline cursor-pointer"
+        >
+          {isBulkMode
+            ? "Back to individual view"
+            : "Paste multiple / Text mode"}
+        </button>
+      </div>
+
+      {isBulkMode ? (
+        <div className="space-y-1.5">
+          <Textarea
+            rows={4}
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            placeholder="Type or paste perks, one per line (press Enter or Shift+Enter for new line)..."
+            className="text-xs border-[#D9DEEC] font-sans"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#55627D]">
+              Press Enter for each new perk line. Click Done when finished.
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleApplyBulk}
+              className="h-7 text-xs bg-[#003cb8] hover:bg-[#002c8c] text-white"
+            >
+              Done Editing
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {benefits.length > 0 && (
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {benefits.map((benefit, bIdx) => (
+                // biome-ignore lint/a11y/noStaticElementInteractions: drag and drop item
+                <div
+                  // biome-ignore lint/suspicious/noArrayIndexKey: benefits are primitive strings without IDs
+                  key={`b-${tierIndex}-${bIdx}`}
+                  draggable={true}
+                  onDragStart={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (
+                      target.tagName === "INPUT" ||
+                      target.tagName === "BUTTON" ||
+                      target.closest("button")
+                    ) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setDraggedBenefitIndex(bIdx);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (
+                      draggedBenefitIndex !== null &&
+                      draggedBenefitIndex !== bIdx
+                    ) {
+                      handleMoveBenefit(draggedBenefitIndex, bIdx);
+                    }
+                    setDraggedBenefitIndex(null);
+                  }}
+                  onDragEnd={() => setDraggedBenefitIndex(null)}
+                  className={`flex items-center gap-1.5 bg-[#F8FAFC] border rounded-md px-2 py-1 transition-all ${
+                    draggedBenefitIndex === bIdx
+                      ? "opacity-50 border-dashed border-[#003cb8] bg-[#EEF2FA]"
+                      : "border-[#D9DEEC] focus-within:border-[#003cb8]"
+                  }`}
+                >
+                  <span
+                    title="Drag to reorder perk"
+                    className="cursor-grab active:cursor-grabbing text-[#55627D] hover:text-[#003cb8] p-0.5 shrink-0 select-none"
+                  >
+                    <GripVertical className="size-3 text-[#8A94A6]" />
+                  </span>
+                  <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
+                  <input
+                    type="text"
+                    value={benefit}
+                    onChange={(e) => handleUpdateItem(bIdx, e.target.value)}
+                    className="flex-1 bg-transparent text-xs text-[#151B2E] border-none focus:outline-hidden py-0.5"
+                    placeholder="Benefit description"
+                  />
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      disabled={bIdx === 0}
+                      onClick={() => handleMoveBenefit(bIdx, bIdx - 1)}
+                      title="Move perk up"
+                      className="size-5 rounded flex items-center justify-center text-[#55627D] hover:text-[#003cb8] hover:bg-[#EEF2FA] disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      <ChevronUp className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bIdx === benefits.length - 1}
+                      onClick={() => handleMoveBenefit(bIdx, bIdx + 1)}
+                      title="Move perk down"
+                      className="size-5 rounded flex items-center justify-center text-[#55627D] hover:text-[#003cb8] hover:bg-[#EEF2FA] disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    >
+                      <ChevronDown className="size-3" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveItem(bIdx)}
+                    title="Remove benefit"
+                    className="size-5 rounded flex items-center justify-center text-[#55627D] hover:text-red-600 hover:bg-red-50 transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add input */}
+          <div className="flex items-center gap-1.5">
+            <Input
+              id={`tier-benefit-input-${tierIndex}`}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add perk (e.g. TRCN CPD certificate) & press Enter"
+              className="h-8 text-xs border-[#D9DEEC] flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAdd}
+              disabled={!inputValue.trim()}
+              className="h-8 px-2.5 text-xs font-semibold border-[#D9DEEC] shrink-0 text-[#003cb8] hover:bg-[#003cb8]/5"
+            >
+              <Plus className="size-3.5 mr-1" />
+              Add Perk
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function EventForm({ initialData, userRole }: EventFormProps) {
@@ -108,6 +357,115 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
   const [status] = useState<"draft" | "in_review" | "published" | "archived">(
     initialData?.status || "draft",
   );
+
+  const DEFAULT_4_TIERS: TicketTier[] = [
+    {
+      id: "free",
+      name: "Free / Access ticket",
+      price: 0,
+      description: "General access to plenary sessions and exhibition area.",
+      benefits: [
+        "Access to plenary sessions",
+        "General exhibition floor access",
+        "Digital event guide",
+      ],
+      isAvailable: true,
+    },
+    {
+      id: "standard",
+      name: "Standard ticket",
+      price: 15000,
+      description: "Standard summit entry with certified attendance kit.",
+      benefits: [
+        "Full event access",
+        "Delegate welcome pack",
+        "TRCN-certified CPD certificate",
+        "Standard seating",
+      ],
+      isAvailable: true,
+    },
+    {
+      id: "premium",
+      name: "Premium ticket",
+      price: 50000,
+      description: "VIP experience with networking executive lunch.",
+      benefits: [
+        "Reserved front-row seating",
+        "Executive luncheon & lounge access",
+        "Private masterclass entry",
+        "Physical framed certificate",
+      ],
+      isAvailable: true,
+    },
+    {
+      id: "partner",
+      name: "Partner / Sponsor offer",
+      price: 250000,
+      description: "Corporate branding and exhibition stand space.",
+      benefits: [
+        "Dedicated exhibition booth space",
+        "Logo on summit backdrops and site",
+        "Stage acknowledgement",
+        "5 VIP all-access passes",
+      ],
+      isAvailable: true,
+    },
+  ];
+
+  const [ticketTiers, setTicketTiers] = useState<TicketTier[]>(
+    initialData?.ticketTiers &&
+      Array.isArray(initialData.ticketTiers) &&
+      initialData.ticketTiers.length > 0
+      ? initialData.ticketTiers
+      : [],
+  );
+
+  const handleAddTier = () => {
+    const newTier: TicketTier = {
+      id: `tier_${Date.now()}`,
+      name: "",
+      price: 0,
+      badge: "",
+      description: "",
+      benefits: [],
+      paymentLink: "",
+      isAvailable: true,
+    };
+    setTicketTiers((prev) => [...prev, newTier]);
+  };
+
+  const handleLoadDefaultTiers = () => {
+    setTicketTiers(DEFAULT_4_TIERS);
+    toast.info("Loaded 4 standard ticket tiers preset");
+  };
+
+  const handleUpdateTier = <K extends keyof TicketTier>(
+    index: number,
+    field: K,
+    value: TicketTier[K],
+  ) => {
+    setTicketTiers((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  };
+
+  const handleDeleteTier = (index: number) => {
+    setTicketTiers((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const [draggedTierIndex, setDraggedTierIndex] = useState<number | null>(null);
+
+  const handleMoveTier = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= ticketTiers.length) return;
+    setTicketTiers((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(fromIndex, 1);
+      copy.splice(toIndex, 0, moved);
+      return copy;
+    });
+  };
 
   // Slug availability state
   const [slugChecking, setSlugChecking] = useState(false);
@@ -173,9 +531,25 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
     formData.set("venue", venue);
     formData.set("coverImage", coverImage);
     formData.set("isFeatured", isFeatured ? "true" : "false");
-    formData.set("isPaid", isPaid ? "true" : "false");
-    formData.set("price", price);
-    formData.set("paymentLink", paymentLink);
+
+    if (ticketTiers.length > 0) {
+      const hasPaid = ticketTiers.some((t) => Number(t.price) > 0);
+      const paidTiers = ticketTiers.filter((t) => Number(t.price) > 0);
+      const minPrice =
+        paidTiers.length > 0
+          ? Math.min(...paidTiers.map((t) => Number(t.price)))
+          : 0;
+      formData.set("isPaid", hasPaid ? "true" : "false");
+      formData.set("price", hasPaid ? String(minPrice) : "0");
+      const firstPaidLink =
+        ticketTiers.find((t) => t.paymentLink)?.paymentLink || paymentLink;
+      formData.set("paymentLink", firstPaidLink || "");
+    } else {
+      formData.set("isPaid", isPaid ? "true" : "false");
+      formData.set("price", price);
+      formData.set("paymentLink", paymentLink);
+    }
+    formData.set("ticketTiers", JSON.stringify(ticketTiers));
     formData.set("status", targetStatus);
 
     startTransition(async () => {
@@ -395,90 +769,421 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
               </div>
             </div>
 
-            {/* Paid Event Toggle & External Checkout URL */}
-            <div className="rounded-lg border border-[#D9DEEC] bg-[#FAFBFF] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-heading text-xs font-bold text-[#151B2E]">
-                    Ticket / Registration Pricing
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Is this event paid, or free admission / RSVP?
+            {/* Dynamic Ticket & Admission Tiers Manager */}
+            <div className="rounded-lg border border-[#D9DEEC] bg-[#FAFBFF] p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between border-b border-[#D9DEEC] pb-3">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Layers className="size-4 text-[#184098] shrink-0" />
+                    <h4 className="font-heading text-sm font-bold text-[#151B2E]">
+                      Tickets &amp; Admission Tiers
+                    </h4>
+                    {ticketTiers.length > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold border-[#184098] text-[#184098] bg-[#EEF2FA]"
+                      >
+                        {ticketTiers.length}{" "}
+                        {ticketTiers.length === 1 ? "Tier" : "Tiers"}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed max-w-lg">
+                    Configure multiple ticket tiers (e.g. Free, Standard,
+                    Premium, Corporate Sponsor) with customizable prices, perks,
+                    and payment links.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPaid(!isPaid)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    isPaid ? "bg-[#184098]" : "bg-[#D9DEEC]"
-                  }`}
-                  role="switch"
-                  aria-checked={isPaid}
-                >
-                  <span
-                    className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                      isPaid ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLoadDefaultTiers}
+                    className="h-8 text-xs font-semibold border-[#184098]/40 text-[#184098] hover:bg-[#EEF2FA] shrink-0"
+                  >
+                    <ListPlus className="size-3.5 mr-1.5" />
+                    Load 4 Tiers Preset
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddTier}
+                    className="h-8 text-xs font-bold bg-[#184098] hover:bg-[#15327A] text-white shrink-0"
+                  >
+                    <Plus className="size-3.5 mr-1" />
+                    Add Custom Tier
+                  </Button>
+                </div>
               </div>
 
-              {isPaid && (
-                <div className="pt-3 border-t border-[#D9DEEC]/70 space-y-4">
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="event-price"
-                      className="block text-xs font-bold text-[#151B2E]"
+              {ticketTiers.length === 0 ? (
+                <div className="rounded-md border border-dashed border-[#D9DEEC] p-6 text-center space-y-3 bg-white">
+                  <p className="text-xs text-muted-foreground">
+                    No multi-tier tickets configured yet. Click{" "}
+                    <strong>&quot;Load 4 Tiers Preset&quot;</strong> to
+                    instantly load the 4 recommended tiers (Free, Standard,
+                    Premium, Partner), or configure a simple single price below.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleLoadDefaultTiers}
+                      className="text-xs font-semibold bg-[#184098] hover:bg-[#15327A] text-white"
                     >
-                      Ticket Price (₦ Naira){" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Input
-                        id="event-price"
-                        type="number"
-                        min="0"
-                        step="500"
-                        placeholder="e.g. 25000"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="h-10 pl-8 border-[#D9DEEC] text-xs font-bold text-[#151B2E]"
-                      />
-                      <span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 font-bold text-xs select-none">
-                        ₦
-                      </span>
+                      <ListPlus className="size-3.5 mr-1.5" />
+                      Load 4 Tiers Preset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddTier}
+                      className="text-xs font-semibold border-[#D9DEEC]"
+                    >
+                      <Plus className="size-3.5 mr-1" />
+                      Add Custom Tier
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {ticketTiers.map((tier, idx) => (
+                    // biome-ignore lint/a11y/noStaticElementInteractions: drag and drop item
+                    <div
+                      key={tier.id || idx}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (
+                          target.tagName === "INPUT" ||
+                          target.tagName === "TEXTAREA" ||
+                          target.tagName === "BUTTON" ||
+                          target.closest("button") ||
+                          target.closest("input") ||
+                          target.closest("textarea")
+                        ) {
+                          e.preventDefault();
+                          return;
+                        }
+                        setDraggedTierIndex(idx);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (
+                          draggedTierIndex !== null &&
+                          draggedTierIndex !== idx
+                        ) {
+                          handleMoveTier(draggedTierIndex, idx);
+                        }
+                        setDraggedTierIndex(null);
+                      }}
+                      onDragEnd={() => setDraggedTierIndex(null)}
+                      className={`p-4 rounded-lg border bg-white shadow-xs space-y-3 transition-all ${
+                        draggedTierIndex === idx
+                          ? "opacity-50 border-dashed border-[#184098] bg-[#EEF2FA]/30"
+                          : "border-[#D9DEEC]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between border-b border-[#D9DEEC]/70 pb-2.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            title="Drag to reorder tier"
+                            className="cursor-grab active:cursor-grabbing text-[#55627D] hover:text-[#184098] p-1 -ml-1 rounded hover:bg-[#EEF2FA] shrink-0 select-none"
+                          >
+                            <GripVertical className="size-4" />
+                          </span>
+                          <span className="size-6 rounded-full bg-[#EEF2FA] text-[#184098] font-black text-xs flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-[#151B2E]">
+                            {tier.name || `Tier #${idx + 1}`}
+                          </span>
+                          {tier.badge && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] border-amber-300 text-amber-800 bg-amber-50"
+                            >
+                              {tier.badge}
+                            </Badge>
+                          )}
+                          <span className="text-xs font-mono font-bold text-[#184098]">
+                            {Number(tier.price) === 0
+                              ? "Free (₦0)"
+                              : `₦${Number(tier.price).toLocaleString()}`}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="flex items-center border border-[#D9DEEC] rounded-md overflow-hidden mr-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveTier(idx, idx - 1)}
+                              title="Move tier up"
+                              className="size-7 flex items-center justify-center text-[#55627D] hover:text-[#184098] hover:bg-[#EEF2FA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            >
+                              <ChevronUp className="size-3.5" />
+                            </button>
+                            <div className="w-[1px] h-4 bg-[#D9DEEC]" />
+                            <button
+                              type="button"
+                              disabled={idx === ticketTiers.length - 1}
+                              onClick={() => handleMoveTier(idx, idx + 1)}
+                              title="Move tier down"
+                              className="size-7 flex items-center justify-center text-[#55627D] hover:text-[#184098] hover:bg-[#EEF2FA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            >
+                              <ChevronDown className="size-3.5" />
+                            </button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteTier(idx)}
+                            className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
+                          >
+                            <Trash2 className="size-3.5 mr-1" />
+                            Remove Tier
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        <div className="sm:col-span-6 space-y-1">
+                          <label
+                            htmlFor={`tier-name-${idx}`}
+                            className="block text-[11px] font-bold text-[#151B2E]"
+                          >
+                            Tier Name <span className="text-red-500">*</span>
+                          </label>
+                          <Input
+                            id={`tier-name-${idx}`}
+                            placeholder="e.g. Free / Access ticket, Standard ticket"
+                            value={tier.name}
+                            onChange={(e) =>
+                              handleUpdateTier(idx, "name", e.target.value)
+                            }
+                            className="h-9 text-xs border-[#D9DEEC]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3 space-y-1">
+                          <label
+                            htmlFor={`tier-price-${idx}`}
+                            className="block text-[11px] font-bold text-[#151B2E]"
+                          >
+                            Price (₦ Naira){" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Input
+                              id={`tier-price-${idx}`}
+                              type="number"
+                              min="0"
+                              step="500"
+                              placeholder="0 for free"
+                              value={tier.price}
+                              onChange={(e) =>
+                                handleUpdateTier(
+                                  idx,
+                                  "price",
+                                  Number(e.target.value),
+                                )
+                              }
+                              className="h-9 pl-7 text-xs font-bold border-[#D9DEEC]"
+                            />
+                            <span className="text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-xs select-none">
+                              ₦
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-3 space-y-1">
+                          <label
+                            htmlFor={`tier-badge-${idx}`}
+                            className="block text-[11px] font-bold text-[#151B2E]"
+                          >
+                            Badge / Tag{" "}
+                            <span className="text-muted-foreground font-normal">
+                              (Optional)
+                            </span>
+                          </label>
+                          <Input
+                            id={`tier-badge-${idx}`}
+                            placeholder="Optional custom tag (e.g. VIP, Featured)"
+                            value={tier.badge || ""}
+                            onChange={(e) =>
+                              handleUpdateTier(idx, "badge", e.target.value)
+                            }
+                            className="h-9 text-xs border-[#D9DEEC]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-12 space-y-1">
+                          <label
+                            htmlFor={`tier-desc-${idx}`}
+                            className="block text-[11px] font-bold text-[#151B2E]"
+                          >
+                            Short Description
+                          </label>
+                          <Input
+                            id={`tier-desc-${idx}`}
+                            placeholder="Brief description of who this ticket is for and what it covers"
+                            value={tier.description || ""}
+                            onChange={(e) =>
+                              handleUpdateTier(
+                                idx,
+                                "description",
+                                e.target.value,
+                              )
+                            }
+                            className="h-9 text-xs border-[#D9DEEC]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-12 space-y-1">
+                          <TierBenefitsEditor
+                            tierIndex={idx}
+                            benefits={tier.benefits || []}
+                            onChange={(updatedBenefits) =>
+                              handleUpdateTier(idx, "benefits", updatedBenefits)
+                            }
+                          />
+                        </div>
+
+                        <div className="sm:col-span-6 space-y-1">
+                          <label
+                            htmlFor={`tier-link-${idx}`}
+                            className="block text-[11px] font-bold text-[#151B2E]"
+                          >
+                            Specific Payment Link (Optional)
+                          </label>
+                          <Input
+                            id={`tier-link-${idx}`}
+                            type="url"
+                            placeholder="https://paystack.com/pay/tier-specific-link"
+                            value={tier.paymentLink || ""}
+                            onChange={(e) =>
+                              handleUpdateTier(
+                                idx,
+                                "paymentLink",
+                                e.target.value,
+                              )
+                            }
+                            className="h-9 text-xs font-mono border-[#D9DEEC]"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            If provided, attendees choosing this tier will be
+                            routed directly to this payment page.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Fee per attendee in Naira. Shown on the event card, detail
-                      page, and registration modal.
-                    </p>
+                  ))}
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#D9DEEC]/70">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLoadDefaultTiers}
+                      className="h-8 text-xs font-semibold text-muted-foreground hover:text-[#184098] hover:bg-[#EEF2FA]"
+                    >
+                      <ListPlus className="size-3.5 mr-1.5" />
+                      Reset to 4 Standard Tiers
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddTier}
+                      className="h-8 text-xs font-bold border-[#184098] text-[#184098] hover:bg-[#EEF2FA]"
+                    >
+                      <Plus className="size-3.5 mr-1" />
+                      Add Another Tier
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Single/Fallback Price toggle if no tiers */}
+              {ticketTiers.length === 0 && (
+                <div className="pt-3 border-t border-[#D9DEEC] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="text-xs font-bold text-[#151B2E]">
+                        Single Price Mode
+                      </h5>
+                      <p className="text-[11px] text-muted-foreground">
+                        Or simply set a single price for this event
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPaid(!isPaid)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isPaid ? "bg-[#184098]" : "bg-[#D9DEEC]"
+                      }`}
+                      role="switch"
+                      aria-checked={isPaid}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          isPaid ? "translate-x-5" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="event-payment-link"
-                      className="block text-xs font-bold text-[#151B2E]"
-                    >
-                      External Checkout URL (Paystack / Flutterwave / Ticket
-                      Link) <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Input
-                        id="event-payment-link"
-                        type="url"
-                        placeholder="https://paystack.com/pay/your-event-link"
-                        value={paymentLink}
-                        onChange={(e) => setPaymentLink(e.target.value)}
-                        className="h-10 pl-9 border-[#D9DEEC] text-xs font-mono text-[#184098]"
-                      />
-                      <DollarSign className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                  {isPaid && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <div className="space-y-1">
+                        <label
+                          htmlFor="event-price-single"
+                          className="block text-xs font-bold text-[#151B2E]"
+                        >
+                          Price (₦ Naira)
+                        </label>
+                        <div className="relative">
+                          <Input
+                            id="event-price-single"
+                            type="number"
+                            min="0"
+                            step="500"
+                            placeholder="e.g. 25000"
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            className="h-9 pl-8 border-[#D9DEEC] text-xs font-bold text-[#151B2E]"
+                          />
+                          <span className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 font-bold text-xs select-none">
+                            ₦
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label
+                          htmlFor="event-link-single"
+                          className="block text-xs font-bold text-[#151B2E]"
+                        >
+                          External Checkout URL
+                        </label>
+                        <Input
+                          id="event-link-single"
+                          type="url"
+                          placeholder="https://paystack.com/pay/event-link"
+                          value={paymentLink}
+                          onChange={(e) => setPaymentLink(e.target.value)}
+                          className="h-9 border-[#D9DEEC] text-xs font-mono text-[#184098]"
+                        />
+                      </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      After attendees submit their details in the registration
-                      form, they will be routed to this checkout URL to finalize
-                      payment.
-                    </p>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -587,7 +1292,7 @@ export function EventForm({ initialData, userRole }: EventFormProps) {
           <Card className="border-[#D9DEEC] bg-white p-5 rounded-lg space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="size-4 text-[#C49A45]" />
+                <Star className="size-4 text-[#C49A45] fill-current" />
                 <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#151B2E]">
                   Flagship Spotlight
                 </CardTitle>

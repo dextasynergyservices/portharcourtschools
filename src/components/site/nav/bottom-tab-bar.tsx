@@ -65,7 +65,7 @@ export function BottomTabBar({ onOpenMore, moreOpen }: BottomTabBarProps) {
           ? "translate3d(0, 100%, 0)"
           : "translate3d(0, 0, 0)",
       }}
-      className={`fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#184098] border-t border-[#08276B] shadow-2xl safe-bottom will-change-transform select-none transition-transform duration-300 ease-out ${
+      className={`fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#003cb8] border-t border-[#002c8c] shadow-2xl safe-bottom will-change-transform select-none transition-transform duration-300 ease-out ${
         isBarHidden ? "pointer-events-none" : "pointer-events-auto"
       }`}
     >

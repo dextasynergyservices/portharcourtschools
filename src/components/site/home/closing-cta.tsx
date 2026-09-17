@@ -28,7 +28,27 @@ function ArrowDiagonal({
   );
 }
 
-export function ClosingCta() {
+export interface ClosingCtaData {
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  primaryCtaLabel?: string;
+  primaryCtaLink?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaLink?: string;
+}
+
+export function ClosingCta({ data }: { data?: ClosingCtaData }) {
+  const badge = data?.badge || "Community Invitation";
+  const title = data?.title || "There’s a Place for You Here.";
+  const subtitle =
+    data?.subtitle ||
+    "Whether you’re a parent seeking clarity, a teacher looking to sharpen your craft, or a school ready to share your story—PortHarcourtSchools is built for you.";
+  const primaryCtaLabel = data?.primaryCtaLabel || "Explore School Directory";
+  const primaryCtaLink = data?.primaryCtaLink || "/schools";
+  const secondaryCtaLabel = data?.secondaryCtaLabel || "Get In Touch";
+  const secondaryCtaLink = data?.secondaryCtaLink || "/contact";
+
   return (
     <section className="relative py-20 sm:py-28 bg-[#184098] text-white overflow-hidden border-b border-[#08276B]">
       {/* Decorative SVG Accent Grid */}
@@ -45,42 +65,38 @@ export function ClosingCta() {
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center space-y-8">
         <FadeIn>
           <span className="inline-block px-3 py-1 bg-white/10 text-[#FDDA32] border border-white/20 rounded-[2px] font-display text-xs font-bold uppercase tracking-widest">
-            EdFocus Africa Initiative
+            {badge}
           </span>
         </FadeIn>
 
         <FadeIn delay={0.08}>
           <h2 className="font-heading text-3xl sm:text-5xl font-black uppercase tracking-tight text-white leading-tight max-w-3xl mx-auto">
-            There’s a Place for You Here.
+            {title}
           </h2>
         </FadeIn>
 
         <FadeIn delay={0.16}>
           <p className="text-base sm:text-xl text-[#D9DEEC] max-w-2xl mx-auto leading-relaxed font-sans">
-            Whether you’re a parent looking for clarity, a teacher looking for
-            growth, or an organisation looking to invest in education, we invite
-            you to join our growing network.
+            {subtitle}
           </p>
         </FadeIn>
 
-        {/* 4 Closing CTAs in ICLE Architecture */}
+        {/* Closing CTAs */}
         <FadeIn delay={0.24}>
           <div className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <a
-              href="https://instagram.com/portharcourtschools"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={primaryCtaLink}
               className="cta-button gold group touch-target"
             >
-              <span>Join the Community</span>
+              <span>{primaryCtaLabel}</span>
               <ArrowDiagonal className="text-[#08276B]" />
-            </a>
+            </Link>
 
             <Link
-              href="/events#programmes"
+              href={secondaryCtaLink}
               className="cta-button outline-white group touch-target"
             >
-              <span>Explore Programmes</span>
+              <span>{secondaryCtaLabel}</span>
               <ArrowDiagonal />
             </Link>
 
@@ -89,14 +105,6 @@ export function ClosingCta() {
               className="cta-button outline-white group touch-target"
             >
               <span>Partner With Us</span>
-              <ArrowDiagonal />
-            </Link>
-
-            <Link
-              href="/contact"
-              className="cta-button outline-white group touch-target"
-            >
-              <span>Work With Us</span>
               <ArrowDiagonal />
             </Link>
           </div>

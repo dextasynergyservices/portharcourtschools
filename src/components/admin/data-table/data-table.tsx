@@ -12,7 +12,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
@@ -33,7 +33,10 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   filterSlot?: ReactNode;
-  renderBulkActions?: (selectedRows: TData[]) => ReactNode;
+  renderBulkActions?: (
+    selectedRows: TData[],
+    meta: { clearSelection: () => void },
+  ) => ReactNode;
   initialPageSize?: number;
 }
 
@@ -83,6 +86,8 @@ export function DataTable<TData, TValue>({
     .getSelectedRowModel()
     .rows.map((row) => row.original);
 
+  const clearSelection = () => table.resetRowSelection();
+
   return (
     <div className="space-y-4">
       {/* Search & Filter Toolbar */}
@@ -124,13 +129,26 @@ export function DataTable<TData, TValue>({
 
       {/* Floating Bulk Action Bar if rows selected */}
       {selectedRows.length > 0 && renderBulkActions && (
-        <div className="sticky top-2 z-20 flex items-center justify-between p-3 bg-[#184098] text-white rounded-lg shadow-lg text-xs animate-in fade-in slide-in-from-top-2">
-          <span className="font-bold">
-            {selectedRows.length} item{selectedRows.length === 1 ? "" : "s"}{" "}
-            selected
-          </span>
+        <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-3 p-3 bg-[#184098] text-white rounded-lg shadow-lg text-xs animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2.5">
+            <span className="font-bold flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center size-5 rounded-full bg-white/20 text-[11px] font-black">
+                {selectedRows.length}
+              </span>
+              {selectedRows.length === 1 ? "item" : "items"} selected
+            </span>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 active:bg-white/30 text-white text-[11px] font-medium transition-colors cursor-pointer border border-white/20"
+              title="Deselect all selected rows"
+            >
+              <X className="size-3" />
+              Deselect all
+            </button>
+          </div>
           <div className="flex items-center gap-2">
-            {renderBulkActions(selectedRows)}
+            {renderBulkActions(selectedRows, { clearSelection })}
           </div>
         </div>
       )}

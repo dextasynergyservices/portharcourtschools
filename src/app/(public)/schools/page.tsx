@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getPageContent } from "@/app/(admin)/admin/pages/actions";
 import { LoadMoreButton } from "@/components/site/directory/load-more-button";
 import { SchoolCard } from "@/components/site/directory/school-card";
 import { SchoolFilterPanel } from "@/components/site/directory/school-filter-panel";
@@ -15,6 +16,8 @@ import { FadeIn } from "@/components/site/motion-wrapper";
 import { Button } from "@/components/ui/button";
 import { getOrSetCache } from "@/lib/cache";
 import { areas, db, schools } from "@/lib/db";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title:
@@ -58,6 +61,16 @@ export default async function PublicSchoolsPage({
     limit,
   } = params;
 
+  const pageData = await getPageContent("schools");
+  const sections =
+    (pageData.sections as Record<string, Record<string, string | undefined>>) ||
+    {};
+  const heroBadge = sections.hero?.badge || "Garden City Education Index";
+  const heroTitle = sections.hero?.title || "Port Harcourt Schools Directory";
+  const heroSubtitle =
+    sections.hero?.subtitle ||
+    "Find, compare, and connect with accredited nursery, primary, and secondary institutions across Port Harcourt. Explore transparent tuition ranges in Naira, academic curriculums, and campus facilities.";
+
   // 1. Fetch active areas for dropdown filter (cached)
   const allAreas = await getOrSetCache(
     "schools:active_areas",
@@ -71,14 +84,21 @@ export default async function PublicSchoolsPage({
     3600,
   );
 
-  // 2. Fetch all published schools with area relation
-  const publishedSchools = await db.query.schools.findMany({
-    where: eq(schools.status, "published"),
-    with: {
-      area: true,
+  // 2. Fetch all published schools with area relation (cached in memory/Redis)
+  const publishedSchools = await getOrSetCache(
+    "schools:published_all",
+    ["schools"],
+    async () => {
+      return db.query.schools.findMany({
+        where: eq(schools.status, "published"),
+        with: {
+          area: true,
+        },
+        orderBy: [desc(schools.createdAt)],
+      });
     },
-    orderBy: [desc(schools.createdAt)],
-  });
+    600,
+  );
 
   // 3. In-memory filter pipeline (fast, handles JSONB levels & fee ranges seamlessly)
   let filtered = publishedSchools.filter((school) => {
@@ -201,22 +221,19 @@ export default async function PublicSchoolsPage({
           <FadeIn>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#184098]/20 bg-white px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-[#184098] shadow-xs">
               <GraduationCap className="size-4" />
-              Garden City Education Index
+              {heroBadge}
             </div>
           </FadeIn>
 
           <FadeIn delay={0.1}>
             <h1 className="font-heading font-black text-2xl sm:text-4xl lg:text-5xl text-[#151B2E] tracking-tight">
-              Port Harcourt Schools Directory
+              {heroTitle}
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.2}>
             <p className="text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed">
-              Find, compare, and connect with accredited nursery, primary, and
-              secondary institutions across Port Harcourt. Explore transparent
-              tuition ranges in Naira, academic curriculums, and campus
-              facilities.
+              {heroSubtitle}
             </p>
           </FadeIn>
 

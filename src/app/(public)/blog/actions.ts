@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db, posts } from "@/lib/db";
 
 export type BlogCardPost = {
@@ -38,7 +38,11 @@ export async function fetchMoreBlogPostsAction({
       category: true,
       author: true,
     },
-    orderBy: [desc(posts.publishedAt), desc(posts.createdAt)],
+    orderBy: [
+      asc(posts.sortOrder),
+      desc(posts.publishedAt),
+      desc(posts.createdAt),
+    ],
     offset,
     limit,
   });

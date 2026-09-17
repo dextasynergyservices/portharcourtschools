@@ -2,25 +2,25 @@
 
 import { Download } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-export interface RegistrationExportItem {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  schoolName: string | null;
-  role: string;
-  ticketQuantity: number;
-  totalAmount: number;
-  status: string;
-  notes?: string | null;
-  createdAt: Date | string;
-  eventTitle?: string;
-}
-
 interface ExportRegistrationsButtonProps {
-  registrations: RegistrationExportItem[];
+  registrations: Array<{
+    id: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    schoolName: string | null;
+    role: string;
+    ticketQuantity: number;
+    totalAmount: string | number;
+    status: string;
+    createdAt: Date | string;
+    ticketTierName?: string;
+    notes?: string | null;
+    eventTitle?: string;
+  }>;
   filenamePrefix?: string;
   eventTitle?: string;
   className?: string;
@@ -36,7 +36,7 @@ export function ExportRegistrationsButton({
 
   const handleExport = () => {
     if (!registrations || registrations.length === 0) {
-      alert("No registrations available to export.");
+      toast.error("No registrations available to export.");
       return;
     }
 
@@ -52,6 +52,7 @@ export function ExportRegistrationsButton({
         "Phone / WhatsApp",
         "School / Institution",
         "Role / Designation",
+        "Ticket Tier",
         "Tickets",
         "Total Amount (NGN)",
         "Payment Status",
@@ -74,6 +75,7 @@ export function ExportRegistrationsButton({
           reg.phone,
           reg.schoolName || "Independent",
           roleStr,
+          reg.ticketTierName || "Standard",
           reg.ticketQuantity,
           reg.totalAmount,
           statusStr,
@@ -116,7 +118,7 @@ export function ExportRegistrationsButton({
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Export failed:", err);
-      alert("Failed to export registrations. Please try again.");
+      toast.error("Failed to export registrations. Please try again.");
     } finally {
       setIsExporting(false);
     }

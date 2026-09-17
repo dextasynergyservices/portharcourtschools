@@ -1,11 +1,26 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ExternalLink, Image as ImageIcon } from "lucide-react";
+import {
+  CheckCircle2,
+  ExternalLink,
+  Image as ImageIcon,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  bulkDeletePartnersAction,
+  bulkUpdatePartnersActiveAction,
+} from "./actions";
 import { PartnerActionsMenu } from "./partner-actions-menu";
 
 export interface PartnerRowData {
@@ -25,7 +40,171 @@ interface PartnersTableProps {
 }
 
 export function PartnersTable({ partners }: PartnersTableProps) {
+  const router = useRouter();
+  const [data, setData] = useState<PartnerRowData[]>(partners);
+  const [isBulkPending, setIsBulkPending] = useState(false);
+
+  // Professional Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: ReactNode;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: "destructive" | "warning" | "default" | "success";
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
+  useEffect(() => {
+    setData(partners);
+  }, [partners]);
+
+  const executeBulkToggleActive = async (
+    selectedRows: PartnerRowData[],
+    isActive: boolean,
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows.map((p) => p.id);
+      const res = await bulkUpdatePartnersActiveAction(ids, isActive);
+      if (res.success) {
+        toast.success(
+          `Successfully ${isActive ? "activated" : "deactivated"} ${res.count} partner(s).`,
+        );
+        setData((prev) =>
+          prev.map((p) => (ids.includes(p.id) ? { ...p, isActive } : p)),
+        );
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to update partners.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkToggleActive = (
+    selectedRows: PartnerRowData[],
+    isActive: boolean,
+    clearSelection: () => void,
+  ) => {
+    if (!isActive) {
+      setConfirmDialog({
+        open: true,
+        title: `Deactivate ${selectedRows.length} Partner${selectedRows.length === 1 ? "" : "s"}`,
+        variant: "warning",
+        confirmLabel: "Deactivate Partners",
+        description: (
+          <>
+            Are you sure you want to deactivate{" "}
+            <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+            selected partner{selectedRows.length === 1 ? "" : "s"}? Their logos
+            will be hidden from the website marquee and directory.
+          </>
+        ),
+        onConfirm: async () => {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+          try {
+            await executeBulkToggleActive(selectedRows, false, clearSelection);
+            setConfirmDialog((prev) => ({ ...prev, open: false }));
+          } finally {
+            setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+          }
+        },
+      });
+      return;
+    }
+
+    executeBulkToggleActive(selectedRows, true, clearSelection);
+  };
+
+  const executeBulkDelete = async (
+    selectedRows: PartnerRowData[],
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows.map((p) => p.id);
+      const res = await bulkDeletePartnersAction(ids);
+      if (res.success) {
+        toast.success(`Successfully deleted ${res.count} partner(s).`);
+        setData((prev) => prev.filter((p) => !ids.includes(p.id)));
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to delete partners.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkDelete = (
+    selectedRows: PartnerRowData[],
+    clearSelection: () => void,
+  ) => {
+    setConfirmDialog({
+      open: true,
+      title: `Permanently Delete ${selectedRows.length} Partner${selectedRows.length === 1 ? "" : "s"}`,
+      variant: "destructive",
+      confirmLabel: "Delete Partners Permanently",
+      description: (
+        <>
+          Are you sure you want to permanently delete{" "}
+          <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+          selected partner{selectedRows.length === 1 ? "" : "s"}? All
+          partnership details and media associations will be removed. This
+          action cannot be undone.
+        </>
+      ),
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await executeBulkDelete(selectedRows, clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
+  };
+
   const columns: ColumnDef<PartnerRowData>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={table.getIsAllPageRowsSelected()}
+          onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+          aria-label="Select all"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(!!e.target.checked)}
+          aria-label="Select row"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -154,11 +333,64 @@ export function PartnersTable({ partners }: PartnersTableProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={partners}
-      searchKey="name"
-      searchPlaceholder="Filter partners by name..."
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        searchKey="name"
+        searchPlaceholder="Filter partners by name..."
+        renderBulkActions={(selectedRows, { clearSelection }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkToggleActive(selectedRows, true, clearSelection)
+              }
+              className="h-8 text-xs bg-white text-[#184098] hover:bg-[#EEF2FA] border-none font-bold"
+            >
+              <CheckCircle2 className="size-3.5 mr-1 text-emerald-600" />
+              Activate Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkToggleActive(selectedRows, false, clearSelection)
+              }
+              className="h-8 text-xs bg-amber-500/20 text-amber-100 hover:bg-amber-500/30 border-amber-400/30 font-semibold"
+            >
+              <XCircle className="size-3.5 mr-1" />
+              Deactivate Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isBulkPending}
+              onClick={() => handleBulkDelete(selectedRows, clearSelection)}
+              className="h-8 text-xs font-bold"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+      />
+    </>
   );
 }
