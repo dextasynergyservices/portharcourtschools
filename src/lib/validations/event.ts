@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+export const ticketTierSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Tier name is required"),
+  price: z.coerce.number().min(0, "Price must be at least 0").default(0),
+  description: z.string().optional(),
+  benefits: z.array(z.string()).optional(),
+  paymentLink: z.string().optional().nullable(),
+  badge: z.string().optional(),
+  isAvailable: z.boolean().default(true),
+});
+
 export const eventSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   slug: z.string().min(3, "Slug must be at least 3 characters"),
@@ -13,6 +24,7 @@ export const eventSchema = z.object({
   isPaid: z.boolean().default(false),
   price: z.coerce.number().min(0, "Price must be at least 0").default(0),
   paymentLink: z.string().optional().nullable(),
+  ticketTiers: z.array(ticketTierSchema).default([]),
   status: z.enum(["draft", "in_review", "published", "archived"]),
 });
 

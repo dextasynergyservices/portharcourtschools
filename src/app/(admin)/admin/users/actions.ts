@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db, users, verificationTokens } from "@/lib/db";
@@ -325,6 +325,81 @@ export async function setPasswordAction(params: {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to set password.";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Bulk toggle user status (Super Admin only).
+ */
+export async function bulkUpdateUserStatusAction(params: {
+  userIds: string[];
+  newStatus: "active" | "inactive";
+}) {
+  const currentUser = await requireSuperAdmin();
+
+  // Exclude current user from bulk status change
+  const validIds = params.userIds.filter((id) => id !== currentUser.id);
+
+  if (validIds.length === 0) {
+    return {
+      success: false,
+      error: "No eligible users selected (you cannot change your own status).",
+    };
+  }
+
+  try {
+    await db
+      .update(users)
+      .set({ status: params.newStatus })
+      .where(inArray(users.id, validIds));
+
+    revalidatePath("/admin/users");
+    return { success: true, count: validIds.length };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to update users status.";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Bulk delete users (Super Admin only).
+ */
+export async function bulkDeleteUsersAction(userIds: string[]) {
+  const currentUser = await requireSuperAdmin();
+
+  // Exclude current user from bulk deletion
+  const validIds = userIds.filter((id) => id !== currentUser.id);
+
+  if (validIds.length === 0) {
+    return {
+      success: false,
+      error: "No eligible users selected (you cannot delete your own account).",
+    };
+  }
+
+  try {
+    const targetUsers = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(inArray(users.id, validIds));
+
+    const emails = targetUsers.map((u) => u.email).filter(Boolean);
+
+    if (emails.length > 0) {
+      await db
+        .delete(verificationTokens)
+        .where(inArray(verificationTokens.identifier, emails));
+    }
+
+    await db.delete(users).where(inArray(users.id, validIds));
+
+    revalidatePath("/admin/users");
+    return { success: true, count: validIds.length };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to delete users.";
     return { success: false, error: message };
   }
 }

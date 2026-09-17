@@ -18,6 +18,7 @@ interface EventPaymentPendingEmailProps {
   eventDateStr: string;
   eventVenue: string;
   ticketQuantity: number;
+  ticketTierName?: string | null;
   totalAmount: number;
   paymentLink: string;
   registrationId: string;
@@ -29,6 +30,7 @@ export function EventPaymentPendingEmail({
   eventDateStr,
   eventVenue,
   ticketQuantity,
+  ticketTierName,
   totalAmount,
   paymentLink,
   registrationId,
@@ -92,6 +94,13 @@ export function EventPaymentPendingEmail({
                 <Text style={detailLabel}>VENUE</Text>
                 <Text style={detailValue}>{eventVenue}</Text>
               </Section>
+
+              {ticketTierName && (
+                <Section style={detailRow}>
+                  <Text style={detailLabel}>TICKET TIER / CATEGORY</Text>
+                  <Text style={detailValue}>{ticketTierName}</Text>
+                </Section>
+              )}
 
               <Section style={detailRow}>
                 <Text style={detailLabel}>TICKET QUANTITY</Text>

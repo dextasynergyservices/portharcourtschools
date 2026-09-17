@@ -1,8 +1,12 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Calendar, School } from "lucide-react";
+import { Calendar, CheckCircle2, School, Trash2, XCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
 import {
@@ -10,6 +14,11 @@ import {
   type RegistrationItemData,
 } from "@/components/admin/events/registration-actions-menu";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  bulkDeleteRegistrationsAction,
+  bulkUpdateRegistrationsStatusAction,
+} from "../actions";
 
 export type RegistrationRowData = RegistrationItemData;
 
@@ -18,7 +27,173 @@ interface RegistrationsTableProps {
 }
 
 export function RegistrationsTable({ registrations }: RegistrationsTableProps) {
+  const router = useRouter();
+  const [data, setData] = useState<RegistrationRowData[]>(registrations);
+  const [isBulkPending, setIsBulkPending] = useState(false);
+
+  // Professional Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: ReactNode;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: "destructive" | "warning" | "default" | "success";
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
+  useEffect(() => {
+    setData(registrations);
+  }, [registrations]);
+
+  const executeBulkStatus = async (
+    selectedRows: RegistrationRowData[],
+    newStatus: "confirmed" | "pending_payment" | "cancelled",
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows.map((r) => r.id);
+      const res = await bulkUpdateRegistrationsStatusAction(ids, newStatus);
+      if (res.success) {
+        toast.success(
+          `Successfully updated ${res.count} registration(s) to ${newStatus}.`,
+        );
+        setData((prev) =>
+          prev.map((r) =>
+            ids.includes(r.id) ? { ...r, status: newStatus } : r,
+          ),
+        );
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to update registrations.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkStatus = (
+    selectedRows: RegistrationRowData[],
+    newStatus: "confirmed" | "pending_payment" | "cancelled",
+    clearSelection: () => void,
+  ) => {
+    if (newStatus === "cancelled") {
+      setConfirmDialog({
+        open: true,
+        title: `Cancel ${selectedRows.length} Registration${selectedRows.length === 1 ? "" : "s"}`,
+        variant: "warning",
+        confirmLabel: "Cancel Registrations",
+        description: (
+          <>
+            Are you sure you want to mark{" "}
+            <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+            selected registration{selectedRows.length === 1 ? "" : "s"} as
+            cancelled? Attendees will be marked as cancelled.
+          </>
+        ),
+        onConfirm: async () => {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+          try {
+            await executeBulkStatus(selectedRows, "cancelled", clearSelection);
+            setConfirmDialog((prev) => ({ ...prev, open: false }));
+          } finally {
+            setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+          }
+        },
+      });
+      return;
+    }
+
+    executeBulkStatus(selectedRows, newStatus, clearSelection);
+  };
+
+  const executeBulkDelete = async (
+    selectedRows: RegistrationRowData[],
+    clearSelection: () => void,
+  ) => {
+    setIsBulkPending(true);
+    try {
+      const ids = selectedRows.map((r) => r.id);
+      const res = await bulkDeleteRegistrationsAction(ids);
+      if (res.success) {
+        toast.success(`Successfully deleted ${res.count} registration(s).`);
+        setData((prev) => prev.filter((r) => !ids.includes(r.id)));
+        clearSelection();
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to delete registrations.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred.");
+    } finally {
+      setIsBulkPending(false);
+    }
+  };
+
+  const handleBulkDelete = (
+    selectedRows: RegistrationRowData[],
+    clearSelection: () => void,
+  ) => {
+    setConfirmDialog({
+      open: true,
+      title: `Permanently Delete ${selectedRows.length} Registration${selectedRows.length === 1 ? "" : "s"}`,
+      variant: "destructive",
+      confirmLabel: "Delete Registrations",
+      description: (
+        <>
+          Are you sure you want to permanently delete{" "}
+          <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+          selected registration{selectedRows.length === 1 ? "" : "s"}? Attendee
+          records and ticket barcodes will be permanently purged. This action
+          cannot be undone.
+        </>
+      ),
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await executeBulkDelete(selectedRows, clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
+  };
+
   const columns: ColumnDef<RegistrationRowData>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={table.getIsAllPageRowsSelected()}
+          onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
+          aria-label="Select all"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(!!e.target.checked)}
+          aria-label="Select row"
+          className="size-3.5 accent-[#184098] rounded cursor-pointer"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "fullName",
       header: ({ column }) => (
@@ -146,10 +321,20 @@ export function RegistrationsTable({ registrations }: RegistrationsTableProps) {
                 ? `₦${reg.totalAmount.toLocaleString()}`
                 : "Free Admission"}
             </div>
-            <span className="text-[11px] text-muted-foreground">
-              {reg.ticketQuantity}{" "}
-              {reg.ticketQuantity === 1 ? "ticket" : "tickets"}
-            </span>
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <span className="text-[11px] text-muted-foreground">
+                {reg.ticketQuantity}{" "}
+                {reg.ticketQuantity === 1 ? "ticket" : "tickets"}
+              </span>
+              {reg.ticketTierName && (
+                <Badge
+                  variant="outline"
+                  className="text-[9px] font-bold border-[#184098]/30 bg-[#EEF2FA] text-[#184098] px-1 py-0"
+                >
+                  {reg.ticketTierName}
+                </Badge>
+              )}
+            </div>
           </div>
         );
       },
@@ -212,11 +397,64 @@ export function RegistrationsTable({ registrations }: RegistrationsTableProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={registrations}
-      searchKey="fullName"
-      searchPlaceholder="Search attendee name, email..."
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        searchKey="fullName"
+        searchPlaceholder="Search attendee name, email..."
+        renderBulkActions={(selectedRows, { clearSelection }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "confirmed", clearSelection)
+              }
+              className="h-8 text-xs bg-white text-[#184098] hover:bg-[#EEF2FA] border-none font-bold"
+            >
+              <CheckCircle2 className="size-3.5 mr-1 text-emerald-600" />
+              Confirm Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isBulkPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "cancelled", clearSelection)
+              }
+              className="h-8 text-xs bg-amber-500/20 text-amber-100 hover:bg-amber-500/30 border-amber-400/30 font-semibold"
+            >
+              <XCircle className="size-3.5 mr-1" />
+              Cancel Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isBulkPending}
+              onClick={() => handleBulkDelete(selectedRows, clearSelection)}
+              className="h-8 text-xs font-bold"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              Delete Selected
+            </Button>
+          </div>
+        )}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+      />
+    </>
   );
 }

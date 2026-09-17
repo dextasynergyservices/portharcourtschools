@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, asc, desc, eq, ilike } from "drizzle-orm";
 import { Calendar, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -61,7 +61,7 @@ export default async function AdminEventsPage({
 
   const allEvents = await db.query.events.findMany({
     where: whereClause,
-    orderBy: [desc(events.startDate)],
+    orderBy: [asc(events.sortOrder), desc(events.startDate)],
     with: {
       registrations: true,
     },

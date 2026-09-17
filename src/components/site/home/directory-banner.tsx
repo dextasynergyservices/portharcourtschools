@@ -28,7 +28,23 @@ function ArrowDiagonal({
   );
 }
 
-export function DirectoryBanner() {
+export interface DirectoryBannerData {
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  coverImage?: string;
+}
+
+export function DirectoryBanner({ data }: { data?: DirectoryBannerData }) {
+  const title = data?.title || "Explore Verified Schools Across Port Harcourt";
+  const subtitle =
+    data?.subtitle ||
+    "Search accredited Montessori, nursery, primary, and secondary institutions across Old GRA, Peter Odili, Woji, Ada George, and Greater Port Harcourt.";
+  const ctaLabel = data?.ctaLabel || "Launch Schools Directory";
+  const ctaLink = data?.ctaLink || "/schools";
+  const coverImage = data?.coverImage || "/images/ph_schools_map_banner.jpg";
+
   return (
     <section
       id="map_cta"
@@ -39,7 +55,7 @@ export function DirectoryBanner() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/images/ph_schools_map_banner.jpg')",
+            backgroundImage: `url('${coverImage}')`,
           }}
         />
         {/* Deep Navy/Black Overlay */}
@@ -48,19 +64,17 @@ export function DirectoryBanner() {
         <div className="relative z-10 max-w-2xl space-y-6">
           <FadeIn>
             <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight uppercase tracking-tight">
-              Explore Verified Schools Across Port Harcourt
+              {title}
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="text-sm sm:text-base text-[#D9DEEC] max-w-xl mx-auto font-sans">
-              Search accredited Montessori, nursery, primary, and secondary
-              institutions across Old GRA, Peter Odili, Woji, Ada George, and
-              Greater Port Harcourt.
+              {subtitle}
             </p>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <Link href="/schools" className="cta-button cta-primary group">
-              <span>Launch Schools Directory</span>
+            <Link href={ctaLink} className="cta-button cta-primary group">
+              <span>{ctaLabel}</span>
               <ArrowDiagonal className="text-[#151B2E]" />
             </Link>
           </FadeIn>

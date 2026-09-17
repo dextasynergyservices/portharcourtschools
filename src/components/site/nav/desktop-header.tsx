@@ -81,8 +81,8 @@ export function DesktopHeader({ onOpenSearch }: DesktopHeaderProps) {
                 href={link.href}
                 className={`relative px-3.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
                   isActive
-                    ? "text-[#184098] border-b-2 border-[#184098]"
-                    : "text-[#151B2E] hover:text-[#184098]"
+                    ? "text-[#003cb8] border-b-2 border-[#003cb8]"
+                    : "text-[#151B2E] hover:text-[#003cb8]"
                 }`}
               >
                 {link.name}
@@ -97,7 +97,7 @@ export function DesktopHeader({ onOpenSearch }: DesktopHeaderProps) {
             type="button"
             onClick={onOpenSearch}
             aria-label="Search schools and articles"
-            className="flex size-10 items-center justify-center border border-[#D9DEEC] text-[#184098] hover:bg-[#EEF2FA] transition-colors rounded-[2px]"
+            className="flex size-10 items-center justify-center border border-[#D9DEEC] text-[#003cb8] hover:bg-[#EEF2FA] transition-colors rounded-[2px]"
           >
             <Search className="size-4.5" />
           </button>

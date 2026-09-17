@@ -72,6 +72,7 @@ interface SendEventRegistrationConfirmedParams {
   eventDateStr: string;
   eventVenue: string;
   ticketQuantity: number;
+  ticketTierName?: string | null;
   isPaid: boolean;
   totalAmount?: number | null;
   registrationId: string;
@@ -86,7 +87,7 @@ export async function sendEventRegistrationConfirmedEmail(
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   if (!resend) {
     console.warn(
-      `[DEV] RESEND_API_KEY not configured. Simulated confirmed event registration email sent to: ${params.email} for ${params.eventTitle}`,
+      `[DEV] RESEND_API_KEY not configured. Simulated confirmed event registration email sent to: ${params.email} for ${params.eventTitle} (${params.ticketTierName || "Standard Tier"})`,
     );
     return { success: true };
   }
@@ -103,6 +104,7 @@ export async function sendEventRegistrationConfirmedEmail(
         eventDateStr: params.eventDateStr,
         eventVenue: params.eventVenue,
         ticketQuantity: params.ticketQuantity,
+        ticketTierName: params.ticketTierName,
         isPaid: params.isPaid,
         totalAmount: params.totalAmount,
         registrationId: params.registrationId,
@@ -129,6 +131,7 @@ interface SendEventPaymentPendingParams {
   eventDateStr: string;
   eventVenue: string;
   ticketQuantity: number;
+  ticketTierName?: string | null;
   totalAmount: number;
   paymentLink: string;
   registrationId: string;
@@ -142,7 +145,7 @@ export async function sendEventPaymentPendingEmail(
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   if (!resend) {
     console.warn(
-      `[DEV] RESEND_API_KEY not configured. Simulated pending payment email sent to: ${params.email} (₦${params.totalAmount}) for ${params.eventTitle}`,
+      `[DEV] RESEND_API_KEY not configured. Simulated pending payment email sent to: ${params.email} (₦${params.totalAmount} - ${params.ticketTierName || "Standard Tier"}) for ${params.eventTitle}`,
     );
     return { success: true };
   }
@@ -159,6 +162,7 @@ export async function sendEventPaymentPendingEmail(
         eventDateStr: params.eventDateStr,
         eventVenue: params.eventVenue,
         ticketQuantity: params.ticketQuantity,
+        ticketTierName: params.ticketTierName,
         totalAmount: params.totalAmount,
         paymentLink: params.paymentLink,
         registrationId: params.registrationId,

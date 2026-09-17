@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { TicketTier } from "@/lib/db/schema";
 
 interface RegisterEventDialogProps {
   event: {
@@ -37,7 +38,9 @@ interface RegisterEventDialogProps {
     isPaid: boolean;
     price?: number | null;
     paymentLink?: string | null;
+    ticketTiers?: TicketTier[] | null;
   };
+  defaultTierId?: string;
   children?: React.ReactNode;
   triggerClassName?: string;
   triggerText?: string;
@@ -45,6 +48,7 @@ interface RegisterEventDialogProps {
 
 export function RegisterEventDialog({
   event,
+  defaultTierId,
   children,
   triggerClassName,
   triggerText,
@@ -62,7 +66,24 @@ export function RegisterEventDialog({
 
   const [isPending, startTransition] = useTransition();
 
-  const unitPrice = event.isPaid ? event.price || 0 : 0;
+  const tiers = event.ticketTiers || [];
+  const hasTiers = Array.isArray(tiers) && tiers.length > 0;
+
+  const [selectedTier, setSelectedTier] = useState<TicketTier | null>(() => {
+    if (!hasTiers) return null;
+    if (defaultTierId) {
+      const found = tiers.find((t) => t.id === defaultTierId);
+      if (found) return found;
+    }
+    return tiers[0] || null;
+  });
+
+  const unitPrice = selectedTier
+    ? Number(selectedTier.price)
+    : event.isPaid
+      ? event.price || 0
+      : 0;
+  const isPaidSelection = unitPrice > 0;
   const totalAmount = unitPrice * quantity;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -70,6 +91,13 @@ export function RegisterEventDialog({
     setError(null);
     const formData = new FormData(e.currentTarget);
     formData.set("ticketQuantity", String(quantity));
+    if (selectedTier) {
+      formData.set("ticketTierName", selectedTier.name);
+      formData.set("ticketTierPrice", String(selectedTier.price));
+      if (selectedTier.paymentLink) {
+        formData.set("tierPaymentLink", selectedTier.paymentLink);
+      }
+    }
 
     startTransition(async () => {
       const res = await createEventRegistrationAction(formData);
@@ -101,6 +129,12 @@ export function RegisterEventDialog({
         setError(null);
         setQuantity(1);
         setRegistrationResult(null);
+        if (hasTiers) {
+          const init = defaultTierId
+            ? tiers.find((t) => t.id === defaultTierId) || tiers[0]
+            : tiers[0];
+          setSelectedTier(init || null);
+        }
       }, 300);
     }
   };
@@ -170,6 +204,15 @@ export function RegisterEventDialog({
                 </p>
               </div>
 
+              {selectedTier && (
+                <div className="pt-2 border-t border-[#E4E0D5] flex items-center justify-between font-semibold">
+                  <span>Ticket Tier:</span>
+                  <span className="text-[#184098] font-bold">
+                    {selectedTier.name}
+                  </span>
+                </div>
+              )}
+
               {registrationResult.isPaid && (
                 <div className="pt-2 border-t border-[#E4E0D5] flex items-center justify-between font-semibold">
                   <span>Total Amount Due:</span>
@@ -219,14 +262,21 @@ export function RegisterEventDialog({
           <>
             {/* Header with Pricing Banner */}
             <DialogHeader className="p-6 bg-[#151B2E] text-white rounded-t-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <Badge
-                  variant="outline"
-                  className="border-white/20 bg-white/10 text-white font-mono text-[10px] uppercase tracking-wider"
-                >
-                  Registration
-                </Badge>
-                {event.isPaid ? (
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="border-white/20 bg-white/10 text-white font-mono text-[10px] uppercase tracking-wider"
+                  >
+                    Registration
+                  </Badge>
+                  {selectedTier && (
+                    <Badge className="bg-[#184098] hover:bg-[#184098] text-white text-[10px] font-semibold border-none">
+                      {selectedTier.name}
+                    </Badge>
+                  )}
+                </div>
+                {isPaidSelection ? (
                   <span className="text-xs font-bold text-white bg-[#184098] px-2.5 py-1 rounded">
                     ₦{unitPrice.toLocaleString()} / attendee
                   </span>
@@ -264,8 +314,74 @@ export function RegisterEventDialog({
                 </div>
               )}
 
+              {/* Ticket Tier Selector */}
+              {hasTiers && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-bold text-[#151B2E]">
+                      Select Admission / Ticket Tier{" "}
+                      <span className="text-red-500">*</span>
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {tiers.length} Tiers Available
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {tiers.map((tier) => {
+                      const isSelected =
+                        selectedTier?.id === tier.id ||
+                        (!selectedTier && tier.id === tiers[0]?.id);
+                      const isFree = Number(tier.price) === 0;
+                      return (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          onClick={() => setSelectedTier(tier)}
+                          className={`p-3 rounded-lg border text-left transition-all relative cursor-pointer ${
+                            isSelected
+                              ? "border-[#184098] bg-[#EEF2FA] shadow-xs ring-2 ring-[#184098]"
+                              : "border-[#D9DEEC] bg-white hover:border-[#184098]/40 hover:bg-[#F8FAFC]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="font-heading text-xs font-bold text-[#151B2E] line-clamp-1">
+                              {tier.name}
+                            </span>
+                            {tier.badge && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] px-1 py-0 h-4 border-amber-300 bg-amber-50 text-amber-800 shrink-0"
+                              >
+                                {tier.badge}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-baseline justify-between mt-1">
+                            <span className="font-mono text-xs font-black text-[#184098]">
+                              {isFree
+                                ? "Free (₦0)"
+                                : `₦${Number(tier.price).toLocaleString()}`}
+                            </span>
+                            {isSelected && (
+                              <span className="text-[10px] font-bold text-[#184098]">
+                                Selected ✓
+                              </span>
+                            )}
+                          </div>
+                          {tier.description && (
+                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
+                              {tier.description}
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Quantity selector for ticket if paid */}
-              {event.isPaid && (
+              {isPaidSelection && (
                 <div className="p-3.5 rounded-md bg-[#EEF2FA] border border-[#D9DEEC] flex items-center justify-between">
                   <div>
                     <label
