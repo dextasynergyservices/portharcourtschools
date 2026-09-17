@@ -1,10 +1,31 @@
 import { asc, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
-import { ClosingCta } from "@/components/site/home/closing-cta";
-import { CommunityPartnersTeaser } from "@/components/site/home/community-partners-teaser";
-import { DirectoryBanner } from "@/components/site/home/directory-banner";
-import { FeaturedEventBanner } from "@/components/site/home/featured-event-banner";
-import { HeroSection } from "@/components/site/home/hero-section";
+import Link from "next/link";
+import { getPageContent } from "@/app/(admin)/admin/pages/actions";
+import {
+  ClosingCta,
+  type ClosingCtaData,
+} from "@/components/site/home/closing-cta";
+import {
+  DirectoryBanner,
+  type DirectoryBannerData,
+} from "@/components/site/home/directory-banner";
+import {
+  FeaturedEventBanner,
+  type FeaturedEventBannerCmsData,
+} from "@/components/site/home/featured-event-banner";
+import {
+  FounderTeaser,
+  type FounderTeaserData,
+} from "@/components/site/home/founder-teaser";
+import {
+  HeroSection,
+  type HeroSectionData,
+} from "@/components/site/home/hero-section";
+import {
+  type NewsletterCmsData,
+  NewsletterSection,
+} from "@/components/site/home/newsletter-section";
 import {
   type MarqueePartnerItem,
   PartnersMarquee,
@@ -13,12 +34,12 @@ import { ProgramScroller } from "@/components/site/home/program-scroller";
 import {
   type LivePostSummary,
   RecentlyPublished,
+  type RecentlyPublishedCmsData,
 } from "@/components/site/home/recently-published";
-import { SpotlightsScroller } from "@/components/site/home/spotlights-scroller";
-import { WhatWeDoPillars } from "@/components/site/home/what-we-do-pillars";
-import { WhoWeServe } from "@/components/site/home/who-we-serve";
 import { getOrSetCache } from "@/lib/cache";
 import { db, partners, posts } from "@/lib/db";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title:
@@ -29,6 +50,31 @@ export const metadata: Metadata = {
     canonical: "/",
   },
 };
+
+function ArrowDiagonal({
+  className = "size-3.5 ml-1",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`inline-block transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-1 ${className}`}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M8.43934 3.21973H3.37645V0.219727H13.5607V10.1145H10.5607V5.34105L2.12132 13.7804L0 11.6591L8.43934 3.21973Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 export default async function HomePage() {
   const rawUrl =
@@ -49,7 +95,11 @@ export default async function HomePage() {
             category: true,
             author: true,
           },
-          orderBy: [desc(posts.publishedAt), desc(posts.createdAt)],
+          orderBy: [
+            asc(posts.sortOrder),
+            desc(posts.publishedAt),
+            desc(posts.createdAt),
+          ],
           limit: 6,
         });
       },
@@ -82,6 +132,39 @@ export default async function HomePage() {
     );
   } catch (err) {
     console.warn("Could not fetch homepage partners:", err);
+  }
+
+  let heroData: HeroSectionData | undefined;
+  let founderTeaserData: FounderTeaserData | undefined;
+  let recentlyPublishedData: RecentlyPublishedCmsData | undefined;
+  let featuredEventsData: FeaturedEventBannerCmsData | undefined;
+  let directoryBannerData: DirectoryBannerData | undefined;
+  let newsletterData: NewsletterCmsData | undefined;
+  let closingCtaData: ClosingCtaData | undefined;
+  let focusAreasData: { watermark?: string; title?: string } | undefined;
+
+  try {
+    const homeContent = await getPageContent("home");
+    const sections = homeContent?.sections as
+      | Record<string, unknown>
+      | undefined;
+    if (sections) {
+      heroData = sections.hero as HeroSectionData;
+      founderTeaserData = sections.founderTeaser as FounderTeaserData;
+      recentlyPublishedData =
+        sections.recentlyPublished as RecentlyPublishedCmsData;
+      featuredEventsData =
+        sections.featuredEvents as FeaturedEventBannerCmsData;
+      directoryBannerData = sections.directoryBanner as DirectoryBannerData;
+      newsletterData = sections.newsletter as NewsletterCmsData;
+      closingCtaData = sections.closingCta as ClosingCtaData;
+      focusAreasData = sections.focusAreas as {
+        watermark?: string;
+        title?: string;
+      };
+    }
+  } catch (err) {
+    console.warn("Could not fetch homepage CMS content:", err);
   }
 
   const jsonLd = {
@@ -185,6 +268,31 @@ export default async function HomePage() {
     },
   ];
 
+  let dynamicPrograms = programs;
+  try {
+    const researchContent = await getPageContent("research");
+    const rSections = researchContent?.sections as
+      | Record<string, Record<string, string | undefined>>
+      | undefined;
+    if (rSections) {
+      dynamicPrograms = [1, 2, 3, 4, 5, 6].map((num, idx) => {
+        const item = rSections[`track${num}`] || {};
+        const fallback = programs[idx];
+        return {
+          number: item.number || fallback.number,
+          title: item.title || fallback.title,
+          subtitle: item.subtitle || fallback.subtitle,
+          href: item.href || fallback.href,
+          tag: item.tag || fallback.tag,
+          color: item.color || fallback.color,
+          bgImage: item.bgImage || fallback.bgImage,
+        };
+      });
+    }
+  } catch (err) {
+    console.warn("Could not fetch research CMS content:", err);
+  }
+
   return (
     <div className="w-full bg-[#F5F4F0] text-[#151B2E]">
       {/* Schema.org Structured Data */}
@@ -194,50 +302,61 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* 1. HERO SECTION (Clarity for Parents. Growth for Schools. Voice for Teachers.) */}
-      <HeroSection />
+      {/* 1. HERO SECTION */}
+      <HeroSection data={heroData} />
 
-      {/* 2. WHO WE SERVE (3 Audiences: Parents, Teachers/Schools, Partners/Organisations) */}
-      <WhoWeServe />
+      {/* 2. MEET THE FOUNDER (Teaser) */}
+      <FounderTeaser data={founderTeaserData} />
 
-      {/* 3. WHAT WE DO (Three Pillars: Media & Community, Programmes, Recognition) */}
-      <WhatWeDoPillars />
+      {/* 3. BLOG / NEWS (Recently Published) */}
+      <RecentlyPublished
+        livePosts={livePosts}
+        cmsData={recentlyPublishedData}
+      />
 
-      {/* 4. FEATURED EVENT BANNER (The Teachers Spotlight Summit & Awards 2026 — 21 Nov 2026, Celebrate Center) */}
-      <FeaturedEventBanner />
+      {/* 4. EVENTS (Featured Event Banner) */}
+      <FeaturedEventBanner cmsData={featuredEventsData} />
 
-      {/* 5. RESEARCH & FOCUS AREAS (Moved down as requested, with horizontal card track & side arrows) */}
+      {/* 5. OUR PARTNERS (Right to Left Animated Logo Ticker) */}
+      <PartnersMarquee partners={partnersList} />
+
+      {/* 6. SCHOOL DIRECTORY (#map_cta) */}
+      <DirectoryBanner data={directoryBannerData} />
+
+      {/* 7. NEWSLETTER SIGN-UP */}
+      <NewsletterSection cmsData={newsletterData} />
+
+      {/* 8. RESEARCH & FOCUS AREAS */}
       <section
         id="research-programs"
         className="relative pt-16 pb-20 sm:pt-24 sm:pb-28 overflow-hidden bg-[#F5F4F0] border-b border-[#E4E0D5]"
       >
         {/* Giant architectural watermark in background */}
         <span className="offset_subheader" aria-hidden="true">
-          Focus Areas
+          {focusAreasData?.watermark || "Focus Areas"}
         </span>
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ProgramScroller programs={programs} />
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pb-4 border-b border-[#D9DEEC] mb-10 gap-2">
+            <div>
+              <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
+                Strategic Focus Tracks
+              </span>
+              <h2 className="h2_subheader mt-1">
+                {focusAreasData?.title || "Research & Focus Areas"}
+              </h2>
+            </div>
+            <Link href="/research" className="subheader_cta group">
+              <span>Explore All Focus Areas</span>
+              <ArrowDiagonal />
+            </Link>
+          </div>
+          <ProgramScroller programs={dynamicPrograms} />
         </div>
       </section>
 
-      {/* 6. FULL-BLEED DIRECTORY BANNER (#map_cta) */}
-      <DirectoryBanner />
-
-      {/* 7. PARTNERS MARQUEE (Right to Left Animated Logo Ticker) */}
-      <PartnersMarquee partners={partnersList} />
-
-      {/* 8. SPOTLIGHTS SECTION (Primers with sideways scrolling on mobile) */}
-      <SpotlightsScroller />
-
-      {/* 9. RECENTLY PUBLISHED (Dark Shadow Navy Publications with 6 official categories) */}
-      <RecentlyPublished livePosts={livePosts} />
-
-      {/* 10. COMMUNITY & PARTNERS TEASERS (Instagram Community & Institutional Partnerships) */}
-      <CommunityPartnersTeaser />
-
-      {/* 11. CLOSING CTA BLOCK (There's a Place for You Here — 4 Distinct CTAs) */}
-      <ClosingCta />
+      {/* 9. CLOSING CTA BLOCK (There's a Place for You Here) */}
+      <ClosingCta data={closingCtaData} />
     </div>
   );
 }

@@ -18,6 +18,7 @@ interface EventRegistrationConfirmedEmailProps {
   eventDateStr: string;
   eventVenue: string;
   ticketQuantity: number;
+  ticketTierName?: string | null;
   isPaid: boolean;
   totalAmount?: number | null;
   registrationId: string;
@@ -30,6 +31,7 @@ export function EventRegistrationConfirmedEmail({
   eventDateStr,
   eventVenue,
   ticketQuantity,
+  ticketTierName,
   isPaid,
   totalAmount,
   registrationId,
@@ -93,6 +95,13 @@ export function EventRegistrationConfirmedEmail({
                 <Text style={detailLabel}>VENUE</Text>
                 <Text style={detailValue}>{eventVenue}</Text>
               </Section>
+
+              {ticketTierName && (
+                <Section style={detailRow}>
+                  <Text style={detailLabel}>TICKET TIER / CATEGORY</Text>
+                  <Text style={detailValue}>{ticketTierName}</Text>
+                </Section>
+              )}
 
               <Section style={detailRow}>
                 <Text style={detailLabel}>TICKETS / PASSES</Text>

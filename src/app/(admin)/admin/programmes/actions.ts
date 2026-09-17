@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -255,5 +255,86 @@ export async function deleteProgrammeAction(
   } catch (err) {
     console.error("Failed to delete programme:", err);
     return { error: "Failed to delete programme." };
+  }
+}
+
+/**
+ * Bulk update programmes status.
+ */
+export async function bulkUpdateProgrammesStatusAction(
+  ids: string[],
+  status: "draft" | "published" | "archived",
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator" && (status === "published" || status === "archived")) {
+    return {
+      success: false,
+      error: "Creators cannot publish or archive programmes in bulk.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No programmes selected." };
+  }
+
+  try {
+    await db
+      .update(programmes)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(inArray(programmes.id, ids));
+
+    revalidatePath("/events");
+    revalidatePath("/admin/programmes");
+    revalidatePath("/");
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk update programmes:", err);
+    return { success: false, error: "Failed to update programmes status." };
+  }
+}
+
+/**
+ * Bulk delete programmes.
+ */
+export async function bulkDeleteProgrammesAction(
+  ids: string[],
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator") {
+    return {
+      success: false,
+      error: "Creators do not have permission to delete programmes.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No programmes selected." };
+  }
+
+  try {
+    await db.delete(programmes).where(inArray(programmes.id, ids));
+
+    revalidatePath("/events");
+    revalidatePath("/admin/programmes");
+    revalidatePath("/");
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk delete programmes:", err);
+    return { success: false, error: "Failed to delete programmes." };
   }
 }

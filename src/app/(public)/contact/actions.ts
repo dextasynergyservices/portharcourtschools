@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { contactSubmissions, db } from "@/lib/db";
 import { sendContactNotificationEmail } from "@/lib/email";
+import { checkContactRateLimit, getClientIp } from "@/lib/ratelimit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 import { contactSchema } from "@/lib/validations/contact";
@@ -12,6 +14,17 @@ export async function submitContactFormAction(formData: FormData): Promise<{
   success?: boolean;
   error?: string;
 }> {
+  // 1. IP Rate Limiting: Max 5 submissions per 10 minutes per IP
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const rateCheck = await checkContactRateLimit(clientIp);
+  if (!rateCheck.success) {
+    return {
+      error:
+        "You have submitted multiple messages recently. Please wait 10 minutes before submitting again.",
+    };
+  }
+
   const rawData = {
     name: (formData.get("name") as string) || "",
     email: (formData.get("email") as string) || "",
@@ -31,7 +44,7 @@ export async function submitContactFormAction(formData: FormData): Promise<{
     };
   }
 
-  // 1. Verify Turnstile token (spam protection)
+  // 2. Verify Turnstile token (spam protection)
   const turnstileCheck = await verifyTurnstileToken(parsed.data.turnstileToken);
   if (!turnstileCheck.success) {
     return {

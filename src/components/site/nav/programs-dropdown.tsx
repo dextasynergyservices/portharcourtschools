@@ -64,14 +64,14 @@ export function ProgramsDropdown() {
         aria-expanded={open}
         className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-[2px] transition-all ${
           open
-            ? "bg-[#184098] text-[#FDDA32]"
-            : "bg-[#08276B] text-white hover:bg-[#184098]"
+            ? "bg-[#003cb8] text-[#fcda04]"
+            : "bg-[#002c8c] text-white hover:bg-[#003cb8]"
         }`}
       >
         <span>Educational Focus</span>
         <ChevronDown
           className={`size-3.5 transition-transform duration-200 ${
-            open ? "rotate-180 text-[#FDDA32]" : "text-white/80"
+            open ? "rotate-180 text-[#fcda04]" : "text-white/80"
           }`}
         />
       </button>
@@ -86,7 +86,7 @@ export function ProgramsDropdown() {
             className="absolute left-0 top-full mt-2 w-[340px] sm:w-[420px] rounded-[2px] border border-[#D9DEEC] bg-white p-3 shadow-xl z-50"
           >
             <div className="px-3 py-2 border-b border-[#D9DEEC]/70 mb-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#184098]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#003cb8]">
                 Curated Focus Areas
               </p>
               <p className="text-xs text-muted-foreground">
@@ -104,11 +104,11 @@ export function ProgramsDropdown() {
                   className="block rounded-xl p-2.5 hover:bg-[#FAFBFF] border border-transparent hover:border-[#D9DEEC]/80 transition-colors group"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="font-heading text-xs font-bold text-[#151B2E] group-hover:text-[#184098] transition-colors">
+                    <p className="font-heading text-xs font-bold text-[#151B2E] group-hover:text-[#003cb8] transition-colors">
                       {p.title}
                     </p>
                     {p.badge && (
-                      <span className="rounded-full bg-[#EEF2FA] text-[#184098] border border-[#D9DEEC] px-2 py-0.5 text-[9px] font-semibold">
+                      <span className="rounded-full bg-[#EEF2FA] text-[#003cb8] border border-[#D9DEEC] px-2 py-0.5 text-[9px] font-semibold">
                         {p.badge}
                       </span>
                     )}
@@ -118,6 +118,17 @@ export function ProgramsDropdown() {
                   </p>
                 </Link>
               ))}
+            </div>
+
+            <div className="pt-2 border-t border-[#D9DEEC]/70 mt-2">
+              <Link
+                href="/research"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-[#003cb8] hover:text-[#002c8c] rounded-[2px] hover:bg-[#EEF2FA]/60 transition-colors"
+              >
+                <span>Explore All 6 Focus Tracks</span>
+                <span>&rarr;</span>
+              </Link>
             </div>
           </motion.div>
         )}

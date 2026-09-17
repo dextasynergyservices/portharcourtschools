@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { invalidateCache } from "@/lib/cache";
@@ -247,5 +247,135 @@ export async function deletePostAction(
   } catch (err) {
     console.error("Failed to delete post:", err);
     return { error: "Failed to delete post." };
+  }
+}
+
+export async function reorderPostsAction(
+  orderedIds: string[],
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "You must be signed in." };
+  }
+
+  const role = (session.user as { role?: string }).role;
+  if (!role || !["super_admin", "editor"].includes(role)) {
+    return {
+      success: false,
+      error: "Insufficient permissions to reorder posts.",
+    };
+  }
+
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return { success: false, error: "Invalid post order payload." };
+  }
+
+  try {
+    for (let i = 0; i < orderedIds.length; i++) {
+      const id = orderedIds[i];
+      await db
+        .update(posts)
+        .set({
+          sortOrder: i + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(posts.id, id));
+    }
+
+    await invalidateCache(["posts", "homepage"]);
+    revalidatePath("/blog");
+    revalidatePath("/");
+    revalidatePath("/admin/posts");
+
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("Failed to reorder posts:", err);
+    return { success: false, error: "Failed to persist new post order." };
+  }
+}
+
+/**
+ * Bulk update posts status (Super Admin / Editor).
+ */
+export async function bulkUpdatePostsStatusAction(
+  ids: string[],
+  status: "draft" | "in_review" | "published" | "archived",
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator" && (status === "published" || status === "archived")) {
+    return {
+      success: false,
+      error: "Creators cannot publish or archive posts in bulk.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No posts selected." };
+  }
+
+  try {
+    const isPublishing = status === "published";
+
+    await db
+      .update(posts)
+      .set({
+        status,
+        ...(isPublishing ? { publishedAt: new Date() } : {}),
+        updatedAt: new Date(),
+      })
+      .where(inArray(posts.id, ids));
+
+    revalidatePath("/blog");
+    revalidatePath("/");
+    revalidatePath("/admin/posts");
+    await invalidateCache(["posts", "homepage"]);
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk update posts status:", err);
+    return { success: false, error: "Failed to update posts status." };
+  }
+}
+
+/**
+ * Bulk delete posts (Super Admin / Editor).
+ */
+export async function bulkDeletePostsAction(
+  ids: string[],
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  const role = (session.user as { role?: string }).role || "creator";
+  if (role === "creator") {
+    return {
+      success: false,
+      error: "Creators do not have permission to delete posts.",
+    };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, error: "No posts selected." };
+  }
+
+  try {
+    await db.delete(posts).where(inArray(posts.id, ids));
+
+    revalidatePath("/blog");
+    revalidatePath("/");
+    revalidatePath("/admin/posts");
+    await invalidateCache(["posts", "homepage"]);
+
+    return { success: true, count: ids.length };
+  } catch (err) {
+    console.error("Failed to bulk delete posts:", err);
+    return { success: false, error: "Failed to delete posts." };
   }
 }

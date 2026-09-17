@@ -3,8 +3,10 @@ import {
   ExternalLink,
   FileText,
   Globe,
+  GraduationCap,
   Home,
   Info,
+  Layers,
   Mail,
   Pencil,
   Users,
@@ -30,6 +32,8 @@ const PAGE_ICONS: Record<string, React.ElementType> = {
   contact: Mail,
   partners: Users,
   events: Calendar,
+  schools: GraduationCap,
+  research: Layers,
 };
 
 export default async function PagesIndexPage() {

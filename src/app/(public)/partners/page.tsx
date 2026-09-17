@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getPageContent } from "@/app/(admin)/admin/pages/actions";
 import {
   FadeIn,
   StaggerContainer,
@@ -17,6 +18,8 @@ import {
 } from "@/components/site/motion-wrapper";
 import { getOrSetCache } from "@/lib/cache";
 import { db, partners } from "@/lib/db";
+
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "Partners — PortHarcourtSchools | EdFocus Africa",
@@ -92,6 +95,11 @@ const DEFAULT_PARTNERS = [
 ];
 
 export default async function PartnersPage() {
+  const pageData = await getPageContent("partners");
+  const sections =
+    (pageData.sections as Record<string, Record<string, string | undefined>>) ||
+    {};
+
   let livePartners: Array<{
     id: string;
     name: string;
@@ -119,11 +127,23 @@ export default async function PartnersPage() {
   const displayPartners =
     livePartners.length > 0 ? livePartners : DEFAULT_PARTNERS;
 
+  const heroBadge = sections.hero?.badge || "Strategic Collaboration";
+  const heroTitle =
+    sections.hero?.title ||
+    "Education Grows Faster When the Right People Invest in It.";
+  const heroSubtitle =
+    sections.hero?.subtitle ||
+    "We partner with schools, businesses, government bodies and organisations who want to be part of building a stronger education ecosystem in Port Harcourt and beyond.";
+
   const whyPartner = [
-    "Direct access to an engaged community of parents, teachers and school leaders",
-    "Visibility at flagship events like the Teachers Spotlight Education Summit & Awards",
-    "Association with a credible, established platform working in education since 2018",
-    "Opportunities to reach schools and educators through content, training and events",
+    sections.valueProp?.point1 ||
+      "Direct access to an engaged community of parents, teachers and school leaders",
+    sections.valueProp?.point2 ||
+      "Visibility at flagship events like the Teachers Spotlight Education Summit & Awards",
+    sections.valueProp?.point3 ||
+      "Association with a credible, established platform working in education since 2018",
+    sections.valueProp?.point4 ||
+      "Opportunities to reach schools and educators through content, training and events",
   ];
 
   const waysToPartner = [
@@ -160,21 +180,19 @@ export default async function PartnersPage() {
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
           <FadeIn>
             <div className="inline-flex items-center rounded-[2px] border border-[#2E8B57]/40 bg-white/80 px-3 py-1 font-display text-xs font-bold uppercase tracking-widest text-[#2E8B57]">
-              Strategic Collaboration
+              {heroBadge}
             </div>
           </FadeIn>
 
           <FadeIn delay={0.08}>
             <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#151B2E] uppercase leading-tight">
-              Education Grows Faster When the Right People Invest in It.
+              {heroTitle}
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.16}>
             <p className="text-base sm:text-xl text-[#35362B] leading-relaxed max-w-3xl font-sans">
-              We partner with schools, businesses, government bodies and
-              organisations who want to be part of building a stronger education
-              ecosystem in Port Harcourt and beyond.
+              {heroSubtitle}
             </p>
           </FadeIn>
         </div>
@@ -280,12 +298,11 @@ export default async function PartnersPage() {
                   Value Proposition
                 </span>
                 <h2 className="font-heading text-3xl font-black text-[#151B2E] mt-1">
-                  Why Partner With Us
+                  {sections.valueProp?.title || "Why Partner With Us"}
                 </h2>
                 <p className="text-sm sm:text-base text-[#55627D] font-sans leading-relaxed pt-1">
-                  Since 2018, our network has connected grassroot classroom
-                  educators, institutional leadership, and parents seeking
-                  uncompromising clarity.
+                  {sections.valueProp?.subtitle ||
+                    "Since 2018, our network has connected grassroot classroom educators, institutional leadership, and parents seeking uncompromising clarity."}
                 </p>
               </FadeIn>
             </div>
@@ -351,11 +368,32 @@ export default async function PartnersPage() {
             })}
           </StaggerContainer>
 
-          <FadeIn delay={0.2} className="mt-12 text-center">
-            <Link href="/contact" className="cta-button cta-primary group">
-              <span>Partner With Us</span>
-              <ArrowDiagonal className="text-[#151B2E]" />
-            </Link>
+          <FadeIn delay={0.2} className="mt-12 text-center space-y-3">
+            {sections.partnershipCta?.title && (
+              <h3 className="font-heading text-2xl font-bold text-[#151B2E]">
+                {sections.partnershipCta.title}
+              </h3>
+            )}
+            {sections.partnershipCta?.subtitle && (
+              <p className="text-sm text-[#55627D] max-w-lg mx-auto">
+                {sections.partnershipCta.subtitle}
+              </p>
+            )}
+            <div>
+              <Link
+                href={
+                  sections.partnershipCta?.primaryCtaLink ||
+                  "/contact?type=partner"
+                }
+                className="cta-button cta-primary group"
+              >
+                <span>
+                  {sections.partnershipCta?.primaryCtaLabel ||
+                    "Partner With Us"}
+                </span>
+                <ArrowDiagonal className="text-[#151B2E]" />
+              </Link>
+            </div>
           </FadeIn>
         </div>
       </section>

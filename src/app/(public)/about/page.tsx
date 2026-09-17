@@ -2,11 +2,22 @@ import { Award, BookOpen, GraduationCap, Handshake } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPageContent } from "@/app/(admin)/admin/pages/actions";
+import { MeetTheFounder } from "@/components/site/about/meet-the-founder";
+import {
+  type WhatWeDoCmsData,
+  WhatWeDoPillars,
+} from "@/components/site/home/what-we-do-pillars";
+import {
+  WhoWeServe,
+  type WhoWeServeCmsData,
+} from "@/components/site/home/who-we-serve";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/site/motion-wrapper";
+
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "About Us — PortHarcourtSchools | EdFocus Africa",
@@ -187,14 +198,35 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* What We Do: Inform, Equip, Celebrate, Connect */}
+      {/* Meet the Founder Section */}
+      <MeetTheFounder
+        data={
+          sections.founder as
+            | React.ComponentProps<typeof MeetTheFounder>["data"]
+            | undefined
+        }
+      />
+
+      {/* One Platform • Three Audiences (Who We Serve) */}
+      <WhoWeServe
+        cmsData={sections.whoWeServe as WhoWeServeCmsData | undefined}
+      />
+
+      {/* Strategic Framework (What We Do - Three Pillars) */}
+      <WhatWeDoPillars
+        cmsData={sections.whatWeDo as WhatWeDoCmsData | undefined}
+      />
+
+      {/* Methodology: Inform, Equip, Celebrate, Connect */}
       <section className="relative py-16 sm:py-24 bg-[#EFECE6] border-b border-[#E4E0D5]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <FadeIn className="max-w-2xl pb-4 border-b border-[#D9DEEC] mb-10">
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              Methodology
+              {sections.methodology?.badge || "Implementation Methodology"}
             </span>
-            <h2 className="h2_subheader mt-1">What We Do</h2>
+            <h2 className="h2_subheader mt-1">
+              {sections.methodology?.title || "How We Execute"}
+            </h2>
           </FadeIn>
 
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -227,37 +259,43 @@ export default async function AboutPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
           <FadeIn>
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              From Content to Institution
+              {sections.ourStory?.badge || "From Content to Institution"}
             </span>
             <h2 className="font-heading text-3xl sm:text-4xl font-black text-[#151B2E] uppercase tracking-tight mt-1">
-              Our Story
+              {sections.ourStory?.title || "Our Story"}
             </h2>
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <p className="text-base sm:text-lg text-[#35362B] leading-relaxed font-sans">
-              PortHarcourtSchools grew out of years of hands-on work with
-              schools across Rivers State, training teachers, advising school
-              leaders, and watching firsthand how much good work goes unseen.
-              What began as a media page became a platform built to change that,
-              starting with the people already doing the work: teachers, school
-              leaders and the parents trusting them with their children.
+            <p className="text-base sm:text-lg text-[#35362B] leading-relaxed font-sans whitespace-pre-line">
+              {sections.ourStory?.story ||
+                "PortHarcourtSchools grew out of years of hands-on work with schools across Rivers State, training teachers, advising school leaders, and watching firsthand how much good work goes unseen. What began as a media page became a platform built to change that, starting with the people already doing the work: teachers, school leaders and the parents trusting them with their children."}
             </p>
           </FadeIn>
 
           <FadeIn delay={0.18}>
             <div className="pt-4 flex flex-wrap items-center gap-4">
-              <Link href="/events#programmes" className="cta-button group">
-                <span>Explore Programmes</span>
+              <Link
+                href={sections.ourStory?.primaryCtaLink || "/events#programmes"}
+                className="cta-button group"
+              >
+                <span>
+                  {sections.ourStory?.primaryCtaLabel || "Explore Programmes"}
+                </span>
                 <ArrowDiagonal className="text-[#FDDA32]" />
               </Link>
               <a
-                href="https://instagram.com/portharcourtschools"
+                href={
+                  sections.ourStory?.secondaryCtaLink ||
+                  "https://instagram.com/portharcourtschools"
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cta-button outline group"
               >
-                <span>Join the Community</span>
+                <span>
+                  {sections.ourStory?.secondaryCtaLabel || "Join the Community"}
+                </span>
                 <ArrowDiagonal />
               </a>
             </div>

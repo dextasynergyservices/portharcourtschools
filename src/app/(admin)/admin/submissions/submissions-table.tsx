@@ -11,7 +11,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { type ReactNode, useMemo, useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
@@ -45,8 +46,8 @@ const PERSONA_CONFIG: Record<
     text: "text-indigo-700",
     border: "border-indigo-200",
   },
-  school: {
-    label: "School Leader",
+  school_admin: {
+    label: "School Rep",
     bg: "bg-emerald-50",
     text: "text-emerald-700",
     border: "border-emerald-200",
@@ -54,12 +55,12 @@ const PERSONA_CONFIG: Record<
   partner: {
     label: "Partner",
     bg: "bg-amber-50",
-    text: "text-amber-800",
+    text: "text-amber-700",
     border: "border-amber-200",
   },
   other: {
     label: "General",
-    bg: "bg-slate-100",
+    bg: "bg-slate-50",
     text: "text-slate-700",
     border: "border-slate-200",
   },
@@ -67,9 +68,26 @@ const PERSONA_CONFIG: Record<
 
 export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const [selectedPersona, setSelectedPersona] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [isPending, startTransition] = useTransition();
+
+  // Professional Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: ReactNode;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: "destructive" | "warning" | "default" | "success";
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
 
   // Client-side filtering by persona and status before passing to TanStack table
   const filteredData = useMemo(() => {
@@ -82,29 +100,96 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
     });
   }, [submissions, selectedPersona, selectedStatus]);
 
-  const handleBulkStatus = (
+  const executeBulkStatus = (
     selectedRows: ContactSubmission[],
     status: "new" | "read" | "archived",
+    clearSelection: () => void,
   ) => {
     startTransition(async () => {
       const ids = selectedRows.map((r) => r.id);
       await bulkUpdateSubmissionStatusAction(ids, status);
+      clearSelection();
       router.refresh();
     });
   };
 
-  const handleBulkDelete = (selectedRows: ContactSubmission[]) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${selectedRows.length} selected inquiries? This action cannot be undone.`,
-      )
-    ) {
+  const handleBulkStatus = (
+    selectedRows: ContactSubmission[],
+    status: "new" | "read" | "archived",
+    clearSelection: () => void,
+  ) => {
+    if (status === "archived") {
+      setConfirmDialog({
+        open: true,
+        title: `Archive ${selectedRows.length} Inquiry/Inquiries`,
+        variant: "warning",
+        confirmLabel: "Archive Inquiries",
+        description: (
+          <>
+            Are you sure you want to archive{" "}
+            <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+            selected inquiry/inquiries? They will be moved to the archive list.
+          </>
+        ),
+        onConfirm: () => {
+          executeBulkStatus(selectedRows, "archived", clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
       return;
     }
-    startTransition(async () => {
-      const ids = selectedRows.map((r) => r.id);
-      await bulkDeleteSubmissionsAction(ids);
-      router.refresh();
+
+    executeBulkStatus(selectedRows, status, clearSelection);
+  };
+
+  const handleBulkDelete = (
+    selectedRows: ContactSubmission[],
+    clearSelection: () => void,
+  ) => {
+    setConfirmDialog({
+      open: true,
+      title: `Permanently Delete ${selectedRows.length} Inquiries`,
+      variant: "destructive",
+      confirmLabel: "Delete Inquiries Permanently",
+      description: (
+        <>
+          Are you sure you want to permanently delete{" "}
+          <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+          selected contact inquiries? This action cannot be undone.
+        </>
+      ),
+      onConfirm: () => {
+        startTransition(async () => {
+          const ids = selectedRows.map((r) => r.id);
+          await bulkDeleteSubmissionsAction(ids);
+          clearSelection();
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          router.refresh();
+        });
+      },
+    });
+  };
+
+  const handleDeleteSingle = (item: ContactSubmission) => {
+    setConfirmDialog({
+      open: true,
+      title: "Delete Inquiry",
+      variant: "destructive",
+      confirmLabel: "Delete Inquiry",
+      description: (
+        <>
+          Are you sure you want to permanently delete this inquiry from{" "}
+          <strong className="text-[#151B2E]">{item.name}</strong>? This action
+          cannot be undone.
+        </>
+      ),
+      onConfirm: () => {
+        startTransition(async () => {
+          await deleteSubmissionAction(item.id);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          router.refresh();
+        });
+      },
     });
   };
 
@@ -353,18 +438,7 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
 
                     <Menu.Item
                       className="flex items-center gap-2 px-2.5 py-1.5 rounded text-red-600 hover:bg-red-50 cursor-pointer outline-none select-none transition-colors"
-                      onClick={() => {
-                        if (
-                          confirm(
-                            "Are you sure you want to delete this submission?",
-                          )
-                        ) {
-                          startTransition(async () => {
-                            await deleteSubmissionAction(item.id);
-                            router.refresh();
-                          });
-                        }
-                      }}
+                      onClick={() => handleDeleteSingle(item)}
                     >
                       <Trash2 className="size-3.5" />
                       <span>Delete Inquiry</span>
@@ -380,103 +454,122 @@ export function SubmissionsTable({ submissions }: SubmissionsTableProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={filteredData}
-      searchKey="name"
-      searchPlaceholder="Search by sender name or email..."
-      filterSlot={
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Persona Filter */}
-          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-md border border-border/50 text-xs">
-            <span className="text-muted-foreground px-2 text-[11px] font-semibold">
-              Type:
-            </span>
-            {[
-              { id: "all", label: "All" },
-              { id: "parent", label: "Parent" },
-              { id: "teacher", label: "Educator" },
-              { id: "school", label: "School" },
-              { id: "partner", label: "Partner" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedPersona(tab.id)}
-                className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
-                  selectedPersona === tab.id
-                    ? "bg-white text-[#184098] shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+    <>
+      <DataTable
+        columns={columns}
+        data={filteredData}
+        searchKey="name"
+        searchPlaceholder="Search by sender name or email..."
+        filterSlot={
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Persona Filter */}
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-md border border-border/50 text-xs">
+              <span className="text-muted-foreground px-2 text-[11px] font-semibold">
+                Type:
+              </span>
+              {[
+                { id: "all", label: "All" },
+                { id: "parent", label: "Parent" },
+                { id: "teacher", label: "Educator" },
+                { id: "school", label: "School" },
+                { id: "partner", label: "Partner" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSelectedPersona(tab.id)}
+                  className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
+                    selectedPersona === tab.id
+                      ? "bg-white text-[#184098] shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-md border border-border/50 text-xs">
+              <span className="text-muted-foreground px-2 text-[11px] font-semibold">
+                Status:
+              </span>
+              {[
+                { id: "all", label: "All" },
+                { id: "new", label: "New" },
+                { id: "read", label: "Read" },
+                { id: "archived", label: "Archived" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSelectedStatus(tab.id)}
+                  className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
+                    selectedStatus === tab.id
+                      ? "bg-white text-[#184098] shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
+        }
+        renderBulkActions={(selectedRows, { clearSelection }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "read", clearSelection)
+              }
+              className="h-8 text-xs font-semibold text-slate-700"
+            >
+              <CheckCircle2 className="size-3.5 mr-1 text-blue-600" />
+              Mark Read ({selectedRows.length})
+            </Button>
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-md border border-border/50 text-xs">
-            <span className="text-muted-foreground px-2 text-[11px] font-semibold">
-              Status:
-            </span>
-            {[
-              { id: "all", label: "All" },
-              { id: "new", label: "New" },
-              { id: "read", label: "Read" },
-              { id: "archived", label: "Archived" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedStatus(tab.id)}
-                className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
-                  selectedStatus === tab.id
-                    ? "bg-white text-[#184098] shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                handleBulkStatus(selectedRows, "archived", clearSelection)
+              }
+              className="h-8 text-xs font-semibold text-slate-700"
+            >
+              <Archive className="size-3.5 mr-1" />
+              Archive ({selectedRows.length})
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={isPending}
+              onClick={() => handleBulkDelete(selectedRows, clearSelection)}
+              className="h-8 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              Delete ({selectedRows.length})
+            </Button>
           </div>
-        </div>
-      }
-      renderBulkActions={(selectedRows) => (
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => handleBulkStatus(selectedRows, "read")}
-            className="h-8 text-xs font-semibold text-slate-700"
-          >
-            <CheckCircle2 className="size-3.5 mr-1 text-blue-600" />
-            Mark Read ({selectedRows.length})
-          </Button>
+        )}
+      />
 
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => handleBulkStatus(selectedRows, "archived")}
-            className="h-8 text-xs font-semibold text-slate-700"
-          >
-            <Archive className="size-3.5 mr-1" />
-            Archive ({selectedRows.length})
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={isPending}
-            onClick={() => handleBulkDelete(selectedRows)}
-            className="h-8 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="size-3.5 mr-1" />
-            Delete ({selectedRows.length})
-          </Button>
-        </div>
-      )}
-    />
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+      />
+    </>
   );
 }

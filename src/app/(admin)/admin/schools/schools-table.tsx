@@ -5,8 +5,9 @@ import { CheckCircle, GraduationCap, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/admin/data-table/data-table-column-header";
 import { SchoolActionsMenu } from "@/components/admin/schools/school-actions-menu";
@@ -53,31 +54,94 @@ export function SchoolsTable({ schools }: SchoolsTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const handleBulkStatus = (
+  // Professional Confirmation Dialog State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: ReactNode;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: "destructive" | "warning" | "default" | "success";
+    isLoading?: boolean;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
+  const executeBulkStatus = (
     selectedRows: SchoolRowData[],
     status: "draft" | "published" | "archived",
+    clearSelection: () => void,
   ) => {
     startTransition(async () => {
       const ids = selectedRows.map((r) => r.id);
       await bulkUpdateSchoolStatusAction(ids, status);
       toast.success(`Updated ${selectedRows.length} schools to ${status}`);
+      clearSelection();
       router.refresh();
     });
   };
 
-  const handleBulkDelete = (selectedRows: SchoolRowData[]) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${selectedRows.length} schools? This cannot be undone.`,
-      )
-    ) {
+  const handleBulkStatus = (
+    selectedRows: SchoolRowData[],
+    status: "draft" | "published" | "archived",
+    clearSelection: () => void,
+  ) => {
+    if (status === "archived") {
+      setConfirmDialog({
+        open: true,
+        title: `Archive ${selectedRows.length} School${selectedRows.length === 1 ? "" : "s"}`,
+        variant: "warning",
+        confirmLabel: "Archive Schools",
+        description: (
+          <>
+            Are you sure you want to archive{" "}
+            <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+            selected school{selectedRows.length === 1 ? "" : "s"}? They will be
+            unlisted from the public school search directory.
+          </>
+        ),
+        onConfirm: () => {
+          executeBulkStatus(selectedRows, "archived", clearSelection);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
       return;
     }
-    startTransition(async () => {
-      const ids = selectedRows.map((r) => r.id);
-      await bulkDeleteSchoolsAction(ids);
-      toast.success(`Deleted ${selectedRows.length} school listings`);
-      router.refresh();
+
+    executeBulkStatus(selectedRows, status, clearSelection);
+  };
+
+  const handleBulkDelete = (
+    selectedRows: SchoolRowData[],
+    clearSelection: () => void,
+  ) => {
+    setConfirmDialog({
+      open: true,
+      title: `Permanently Delete ${selectedRows.length} School${selectedRows.length === 1 ? "" : "s"}`,
+      variant: "destructive",
+      confirmLabel: "Delete Schools Permanently",
+      description: (
+        <>
+          Are you sure you want to permanently delete{" "}
+          <strong className="text-[#151B2E]">{selectedRows.length}</strong>{" "}
+          selected school{selectedRows.length === 1 ? "" : "s"}? All listing
+          details, reviews, and photos will be removed. This cannot be undone.
+        </>
+      ),
+      onConfirm: () => {
+        startTransition(async () => {
+          const ids = selectedRows.map((r) => r.id);
+          await bulkDeleteSchoolsAction(ids);
+          toast.success(`Deleted ${selectedRows.length} school listings`);
+          clearSelection();
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          router.refresh();
+        });
+      },
     });
   };
 
@@ -333,42 +397,61 @@ export function SchoolsTable({ schools }: SchoolsTableProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={schools}
-      searchKey="name"
-      searchPlaceholder="Search school name or address..."
-      renderBulkActions={(selected) => (
-        <>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => handleBulkStatus(selected, "published")}
-            className="h-8 text-xs bg-white text-[#184098] hover:bg-[#EEF2FA] border-none font-bold"
-          >
-            Publish Selected
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => handleBulkStatus(selected, "archived")}
-            className="h-8 text-xs bg-white/10 text-white hover:bg-white/20 border-white/20"
-          >
-            Archive Selected
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            disabled={isPending}
-            onClick={() => handleBulkDelete(selected)}
-            className="h-8 text-xs font-bold"
-          >
-            Delete Selected
-          </Button>
-        </>
-      )}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={schools}
+        searchKey="name"
+        searchPlaceholder="Search school name or address..."
+        renderBulkActions={(selected, { clearSelection }) => (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                handleBulkStatus(selected, "published", clearSelection)
+              }
+              className="h-8 text-xs bg-white text-[#184098] hover:bg-[#EEF2FA] border-none font-bold"
+            >
+              Publish Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                handleBulkStatus(selected, "archived", clearSelection)
+              }
+              className="h-8 text-xs bg-white/10 text-white hover:bg-white/20 border-white/20"
+            >
+              Archive Selected
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isPending}
+              onClick={() => handleBulkDelete(selected, clearSelection)}
+              className="h-8 text-xs font-bold"
+            >
+              Delete Selected
+            </Button>
+          </>
+        )}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+      />
+    </>
   );
 }

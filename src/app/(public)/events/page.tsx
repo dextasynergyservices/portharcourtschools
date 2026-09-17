@@ -1,8 +1,9 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { Calendar, GraduationCap, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { getPageContent } from "@/app/(admin)/admin/pages/actions";
 import { FlagshipEventShowcase } from "@/components/site/events/flagship-event-showcase";
 import { RegisterEventDialog } from "@/components/site/events/register-event-dialog";
 import {
@@ -12,6 +13,8 @@ import {
 } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { db, events, programmes } from "@/lib/db";
+
+export const revalidate = 180;
 
 export const metadata: Metadata = {
   title: "Events & Programmes — PortHarcourtSchools | EdFocus Africa",
@@ -58,6 +61,17 @@ export default async function EventsAndProgrammesPage({
 }: EventsPageProps) {
   const { type } = await searchParams;
 
+  const pageData = await getPageContent("events");
+  const sections =
+    (pageData.sections as Record<string, Record<string, string | undefined>>) ||
+    {};
+
+  const heroBadge = sections.hero?.badge || "Public Engagement & Training";
+  const heroTitle = sections.hero?.title || "Events & Programmes";
+  const heroSubtitle =
+    sections.hero?.subtitle ||
+    "From our flagship education summit to ongoing professional development masterclasses, this is where PortHarcourtSchools convenes, honors, and equips educators across Rivers State.";
+
   // 1. Fetch published events
   const eventConditions = [eq(events.status, "published")];
   if (type && type !== "all") {
@@ -68,7 +82,7 @@ export default async function EventsAndProgrammesPage({
 
   const allPublishedEvents = await db.query.events.findMany({
     where: and(...eventConditions),
-    orderBy: [desc(events.startDate)],
+    orderBy: [asc(events.sortOrder), desc(events.startDate)],
   });
 
   // Flagship spotlight events: prioritize events explicitly marked isFeatured: true
@@ -104,21 +118,19 @@ export default async function EventsAndProgrammesPage({
         <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-6">
           <FadeIn>
             <div className="inline-flex items-center rounded-[2px] border border-[#184098]/30 bg-white/80 px-3 py-1 font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              Public Engagement &amp; Training
+              {heroBadge}
             </div>
           </FadeIn>
 
           <FadeIn delay={0.08}>
             <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#151B2E] uppercase leading-tight">
-              Events &amp; Programmes
+              {heroTitle}
             </h1>
           </FadeIn>
 
           <FadeIn delay={0.16}>
             <p className="text-base sm:text-xl text-[#35362B] leading-relaxed max-w-3xl font-sans">
-              From our flagship education summit to ongoing professional
-              development masterclasses, this is where PortHarcourtSchools
-              convenes, honors, and equips educators across Rivers State.
+              {heroSubtitle}
             </p>
           </FadeIn>
         </div>
@@ -134,10 +146,10 @@ export default async function EventsAndProgrammesPage({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#D9DEEC] pb-4">
           <div>
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              Calendar &amp; Gatherings
+              {sections.upcomingHeader?.badge || "Calendar & Gatherings"}
             </span>
             <h2 className="font-heading text-2xl sm:text-3xl font-black text-[#151B2E] mt-1">
-              Upcoming Events &amp; Workshops
+              {sections.upcomingHeader?.title || "Upcoming Events & Workshops"}
             </h2>
           </div>
 
@@ -282,15 +294,15 @@ export default async function EventsAndProgrammesPage({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
           <FadeIn className="max-w-3xl pb-4 border-b border-[#D9DEEC]">
             <span className="font-display text-xs font-bold uppercase tracking-widest text-[#184098]">
-              Accredited Capacity Development
+              {sections.programmesHeader?.badge ||
+                "Accredited Capacity Development"}
             </span>
             <h2 className="font-heading text-3xl sm:text-4xl font-black text-[#151B2E] mt-1">
-              Accredited Programmes
+              {sections.programmesHeader?.title || "Accredited Programmes"}
             </h2>
             <p className="text-sm sm:text-base text-[#55627D] font-sans mt-2 leading-relaxed">
-              We deliver practical, certified training for school leaders and
-              teachers through our technical delivery partner, GeePhill
-              Education Consulting.
+              {sections.programmesHeader?.subtitle ||
+                "We deliver practical, certified training for school leaders and teachers through our technical delivery partner, GeePhill Education Consulting."}
             </p>
           </FadeIn>
 

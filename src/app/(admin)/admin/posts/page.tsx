@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, asc, desc, eq, ilike } from "drizzle-orm";
 import { BookOpen, Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -74,7 +74,11 @@ export default async function AdminPostsPage({
       category: true,
       author: true,
     },
-    orderBy: [desc(posts.createdAt)],
+    orderBy: [
+      asc(posts.sortOrder),
+      desc(posts.publishedAt),
+      desc(posts.createdAt),
+    ],
   });
 
   // Count summaries

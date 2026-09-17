@@ -19,6 +19,7 @@ import {
   deleteMediaAction,
   updateMediaAltTextAction,
 } from "@/app/(admin)/admin/media/actions";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export function MediaClient({
   const [newAltText, setNewAltText] = useState("");
   const [isSavingAlt, setIsSavingAlt] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<MediaItem | null>(null);
 
   const filteredItems = items.filter((item) => {
     if (!search.trim()) return true;
@@ -103,14 +105,23 @@ export function MediaClient({
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this media asset?")) return;
+  function handleDelete(id: string) {
+    const item = items.find((i) => i.id === id);
+    if (item) {
+      setAssetToDelete(item);
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!assetToDelete) return;
+    const id = assetToDelete.id;
     setDeletingId(id);
     try {
       const res = await deleteMediaAction(id);
       if (res.success) {
         setItems((prev) => prev.filter((i) => i.id !== id));
         toast.success("Media asset deleted");
+        setAssetToDelete(null);
       } else {
         toast.error("Failed to delete media", {
           description: res.error,
@@ -347,6 +358,18 @@ export function MediaClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        open={Boolean(assetToDelete)}
+        onOpenChange={(open) => !open && setAssetToDelete(null)}
+        title="Delete Media Asset"
+        description="Are you sure you want to permanently delete this media asset? Any pages or components referencing this image URL will no longer be able to display it."
+        variant="destructive"
+        confirmLabel="Delete Asset"
+        isLoading={Boolean(deletingId)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

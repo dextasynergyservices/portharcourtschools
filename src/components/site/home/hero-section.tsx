@@ -31,7 +31,38 @@ function ArrowDiagonal({
   );
 }
 
-export function HeroSection() {
+export interface HeroSectionData {
+  badge?: string;
+  headlinePart1?: string;
+  headlinePart2?: string;
+  headlinePart3?: string;
+  subtitle?: string;
+  primaryCtaLabel?: string;
+  primaryCtaLink?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaLink?: string;
+  coverImage?: string;
+  coverImageAlt?: string;
+}
+
+export function HeroSection({ data }: { data?: HeroSectionData }) {
+  const badge =
+    data?.badge || "Independent Educational Resource & Policy Forum";
+  const part1 = data?.headlinePart1 || "Clarity for Parents.";
+  const part2 = data?.headlinePart2 || "Growth for Schools.";
+  const part3 = data?.headlinePart3 || "Voice for Teachers.";
+  const subtitle =
+    data?.subtitle ||
+    "PortHarcourtSchools is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.";
+  const primaryCtaLabel = data?.primaryCtaLabel || "Explore School Directory";
+  const primaryCtaLink = data?.primaryCtaLink || "/schools";
+  const secondaryCtaLabel = data?.secondaryCtaLabel || "Upcoming Events";
+  const secondaryCtaLink = data?.secondaryCtaLink || "/events";
+  const coverImage = data?.coverImage || "/images/ph_hero_classroom.jpg";
+  const coverImageAlt =
+    data?.coverImageAlt ||
+    "Port Harcourt Classroom Excellence and Dedicated Educator";
+
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Global window scroll for 100% reliable pixel-based parallax tracking
@@ -65,7 +96,7 @@ export function HeroSection() {
         {/* Top line background */}
         <motion.svg
           style={{ y: lineOneY }}
-          className="absolute -top-10 right-0 w-[700px] h-[400px] opacity-25 text-[#184098] will-change-transform"
+          className="absolute -top-10 right-0 w-[700px] h-[400px] opacity-25 text-[#003cb8] will-change-transform"
           viewBox="0 0 700 400"
           fill="none"
         >
@@ -75,13 +106,13 @@ export function HeroSection() {
             strokeWidth="2.5"
             strokeDasharray="8 8"
           />
-          <circle cx="520" cy="115" r="5" fill="#FDDA32" />
+          <circle cx="520" cy="115" r="5" fill="#fcda04" />
         </motion.svg>
 
         {/* Middle line foreground */}
         <motion.svg
           style={{ y: lineTwoY }}
-          className="absolute top-1/3 -left-20 w-[600px] h-[300px] opacity-20 text-[#08276B] will-change-transform"
+          className="absolute top-1/3 -left-20 w-[600px] h-[300px] opacity-20 text-[#002c8c] will-change-transform"
           viewBox="0 0 600 300"
           fill="none"
         >
@@ -90,18 +121,18 @@ export function HeroSection() {
             stroke="currentColor"
             strokeWidth="2"
           />
-          <circle cx="280" cy="220" r="4" fill="#184098" />
+          <circle cx="280" cy="220" r="4" fill="#003cb8" />
         </motion.svg>
 
         {/* Bottom line long */}
         <motion.svg
           style={{ x: lineThreeX }}
-          className="absolute bottom-0 right-10 w-[800px] h-[220px] opacity-20 text-[#FDDA32] will-change-transform"
+          className="absolute bottom-0 right-10 w-[800px] h-[220px] opacity-20 text-[#fcda04] will-change-transform"
           viewBox="0 0 800 220"
           fill="none"
         >
-          <path d="M0 120 Q400 40 800 160" stroke="#184098" strokeWidth="1.5" />
-          <circle cx="650" cy="130" r="6" fill="#FDDA32" />
+          <path d="M0 120 Q400 40 800 160" stroke="#003cb8" strokeWidth="1.5" />
+          <circle cx="650" cy="130" r="6" fill="#fcda04" />
         </motion.svg>
       </div>
 
@@ -115,8 +146,8 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center rounded-[2px] border border-[#184098]/30 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 font-display text-[11px] font-bold uppercase tracking-widest text-[#184098] shadow-xs">
-                <span>Independent Educational Resource &amp; Policy Forum</span>
+              <div className="inline-flex items-center rounded-[2px] border border-[#003cb8]/30 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 font-display text-[11px] font-bold uppercase tracking-widest text-[#003cb8] shadow-xs">
+                <span>{badge}</span>
               </div>
             </motion.div>
 
@@ -129,15 +160,21 @@ export function HeroSection() {
                 delay: 0.08,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="space-y-2"
+              className="space-y-1 sm:space-y-1.5"
             >
-              <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#151B2E] leading-[1.08] uppercase">
-                Clarity for Parents.{" "}
-                <span className="text-[#184098]">Growth for Schools.</span>
+              <h1 className="font-heading text-[22px] sm:text-3xl md:text-4xl lg:text-[46px] font-black tracking-tight leading-[1.15] uppercase">
+                <span className="block whitespace-nowrap text-[#151B2E]">
+                  {part1}
+                </span>
+                <span className="block whitespace-nowrap text-[#003cb8]">
+                  {part2}
+                </span>
+                {part3 && (
+                  <span className="block whitespace-nowrap text-[#151B2E]">
+                    {part3}
+                  </span>
+                )}
               </h1>
-              <p className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#55627D] tracking-tight">
-                Voice for Teachers.
-              </p>
             </motion.div>
 
             {/* Editorial Subheadline */}
@@ -151,10 +188,7 @@ export function HeroSection() {
               }}
               className="text-base sm:text-xl text-[#35362B] leading-relaxed max-w-2xl font-sans"
             >
-              PortHarcourtSchools is the media, programmes and community
-              platform building a stronger education ecosystem across Port
-              Harcourt and beyond, one school, one teacher, one parent at a
-              time.
+              {subtitle}
             </motion.p>
 
             {/* Primary CTAs in ICLE Architecture */}
@@ -169,24 +203,24 @@ export function HeroSection() {
               className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 max-w-full"
             >
               <Link
-                href="#community"
+                href={primaryCtaLink}
                 className="cta-button group touch-target w-full sm:w-auto text-center justify-center"
               >
-                <span>Join the Community</span>
-                <ArrowDiagonal className="text-[#FDDA32]" />
+                <span>{primaryCtaLabel}</span>
+                <ArrowDiagonal className="text-[#fcda04]" />
               </Link>
 
               <Link
-                href="/events#programmes"
+                href={secondaryCtaLink}
                 className="cta-button outline group touch-target w-full sm:w-auto text-center justify-center"
               >
-                <span>Explore Programmes</span>
+                <span>{secondaryCtaLabel}</span>
                 <ArrowDiagonal />
               </Link>
 
               <Link
                 href="/partners"
-                className="text-xs font-display font-bold uppercase tracking-wider text-[#184098] hover:text-[#08276B] hover:underline px-2 py-2 inline-flex items-center justify-center gap-1 group w-full sm:w-auto text-center"
+                className="text-xs font-display font-bold uppercase tracking-wider text-[#003cb8] hover:text-[#002c8c] hover:underline px-2 py-2 inline-flex items-center justify-center gap-1 group w-full sm:w-auto text-center"
               >
                 <span>Partner With Us</span>
                 <ArrowDiagonal />
@@ -200,18 +234,18 @@ export function HeroSection() {
               {/* Background Geometric Accent Box with Counter-Parallax Drift */}
               <motion.div
                 style={{ y: accentBoxY }}
-                className="absolute right-0 bottom-0 sm:-right-4 sm:-bottom-4 w-full h-full rounded-[2px] border-2 border-[#184098]/30 bg-[#FDDA32]/20 select-none pointer-events-none will-change-transform"
+                className="absolute right-0 bottom-0 sm:-right-4 sm:-bottom-4 w-full h-full rounded-[2px] border-2 border-[#003cb8]/30 bg-[#fcda04]/20 select-none pointer-events-none will-change-transform"
                 aria-hidden="true"
               />
 
               {/* Main Parallax Framed Photographic Card */}
               <motion.div
                 style={{ y: imageY, rotate: imageRotate, scale: imageScale }}
-                className="relative overflow-hidden rounded-[2px] border border-[#184098]/40 bg-white shadow-2xl will-change-transform"
+                className="relative overflow-hidden rounded-[2px] border border-[#003cb8]/40 bg-white shadow-2xl will-change-transform"
               >
                 <Image
-                  src="/images/ph_hero_classroom.jpg"
-                  alt="Port Harcourt Classroom Excellence and Dedicated Educator"
+                  src={coverImage}
+                  alt={coverImageAlt}
                   width={800}
                   height={600}
                   priority
@@ -219,7 +253,7 @@ export function HeroSection() {
                 />
 
                 {/* Subtle Gradient & Vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#08276B]/80 via-black/10 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#002c8c]/80 via-black/10 to-transparent pointer-events-none" />
 
                 {/* Floating Lower Badge with Independent Floating Parallax */}
                 <motion.div
@@ -227,7 +261,7 @@ export function HeroSection() {
                   className="absolute bottom-4 left-4 right-4 z-10 p-3.5 bg-white/95 backdrop-blur-md rounded-[2px] border border-[#D9DEEC] shadow-md flex items-center justify-between gap-3 will-change-transform"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-[2px] bg-[#184098] text-[#FDDA32]">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-[2px] bg-[#003cb8] text-[#fcda04]">
                       <CheckCircle2 className="size-4.5" />
                     </div>
                     <div className="min-w-0">
@@ -240,7 +274,7 @@ export function HeroSection() {
                     </div>
                   </div>
 
-                  <span className="font-display text-[10px] font-bold text-[#184098] bg-[#EEF2FA] px-2 py-1 rounded-[2px] uppercase shrink-0">
+                  <span className="font-display text-[10px] font-bold text-[#003cb8] bg-[#EEF2FA] px-2 py-1 rounded-[2px] uppercase shrink-0">
                     350+ Schools
                   </span>
                 </motion.div>
