@@ -191,8 +191,8 @@ Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-Configure the required environment variables:
-```env
+Configure the required environment variables
+
 # Database (Neon Serverless PostgreSQL)
 DATABASE_URL="postgresql://username:password@ep-sample-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
 
