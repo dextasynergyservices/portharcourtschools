@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import logoImg from "../../../../public/images/logo.png";
 import { ProgramsDropdown } from "./programs-dropdown";
 
 interface DesktopHeaderProps {
@@ -46,21 +47,19 @@ export function DesktopHeader({ onOpenSearch }: DesktopHeaderProps) {
       <div
         className={cn(
           "mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-8 transition-all duration-300",
-          scrolled ? "h-16" : "h-20",
+          scrolled ? "h-16" : "h-[88px]",
         )}
       >
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group py-1">
           <Image
-            src="/images/brand-logo.jpg"
-            alt="PortHarcourtSchools"
-            width={180}
-            height={56}
+            src={logoImg}
+            alt="Schools Voice"
             priority
             loading="eager"
             className={cn(
               "w-auto object-contain rounded-md transition-all duration-300 group-hover:scale-[1.02]",
-              scrolled ? "h-9" : "h-11",
+              scrolled ? "h-12" : "h-16",
             )}
           />
         </Link>

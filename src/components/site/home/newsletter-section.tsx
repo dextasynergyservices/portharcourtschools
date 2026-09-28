@@ -49,7 +49,9 @@ export function NewsletterSection({
 
     setIsSubmitting(false);
     setSubscribed(true);
-    toast.success("Welcome to PortHarcourtSchools community updates!");
+    toast.success(
+      "Welcome to Schools Voice (formerly Port Harcourt Schools) community updates!",
+    );
   }
 
   return (

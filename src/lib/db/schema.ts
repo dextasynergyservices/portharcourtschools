@@ -532,7 +532,7 @@ export type SocialLinkItem = {
 
 export const siteSettings = pgTable("site_settings", {
   id: text("id").primaryKey().default("default"),
-  siteName: text("site_name").default("Port Harcourt Schools").notNull(),
+  siteName: text("site_name").default("Schools Voice").notNull(),
   siteTagline: text("site_tagline").default(
     "The definitive educational resource for families and schools in Port Harcourt.",
   ),

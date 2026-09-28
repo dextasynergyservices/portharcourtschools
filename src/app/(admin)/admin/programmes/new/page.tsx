@@ -4,7 +4,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { ProgrammeForm } from "../programme-form";
 
 export const metadata = {
-  title: "New Programme — Admin Portal | PortHarcourtSchools",
+  title:
+    "New Programme — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function NewProgrammePage() {

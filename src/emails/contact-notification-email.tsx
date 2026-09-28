@@ -50,15 +50,16 @@ export function ContactNotificationEmail({
     <Html>
       <Head />
       <Preview>
-        New {personaLabel} submission from {name} on PortHarcourtSchools
+        New {personaLabel} submission from {name} on Schools Voice (Formerly
+        Port Harcourt Schools)
       </Preview>
       <Body style={mainStyle}>
         <Container style={containerStyle}>
           {/* Brand Logo Bar */}
           <Section style={logoBarStyle}>
             <Img
-              src={`${siteUrl}/images/brand-logo.jpg`}
-              alt="PortHarcourtSchools"
+              src={`${siteUrl}/images/logo.png`}
+              alt="Schools Voice — Formerly Port Harcourt Schools"
               width="64"
               height="64"
               style={logoImageStyle}
@@ -132,8 +133,8 @@ export function ContactNotificationEmail({
           {/* Footer */}
           <Section style={footerSectionStyle}>
             <Text style={footerTextStyle}>
-              PortHarcourtSchools — The Authoritative Education Platform for
-              Port Harcourt.
+              Schools Voice (Formerly Port Harcourt Schools) — The Authoritative
+              Education Platform for Port Harcourt.
             </Text>
             <Text style={footerSubtextStyle}>
               You received this automated notification because your email is

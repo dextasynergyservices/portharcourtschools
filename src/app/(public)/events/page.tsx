@@ -17,9 +17,10 @@ import { db, events, programmes } from "@/lib/db";
 export const revalidate = 180;
 
 export const metadata: Metadata = {
-  title: "Events & Programmes — PortHarcourtSchools | EdFocus Africa",
+  title:
+    "Events & Programmes — Schools Voice (Formerly Port Harcourt Schools) | EdFocus Africa",
   description:
-    "From our flagship Teachers Spotlight Summit & Awards to ongoing accredited training programmes with GeePhill, this is where PortHarcourtSchools brings its mission to life.",
+    "From our flagship Teachers Spotlight Summit & Awards to ongoing accredited training programmes with GeePhill, this is where Schools Voice (formerly Port Harcourt Schools) brings its mission to life.",
   alternates: {
     canonical: "/events",
   },

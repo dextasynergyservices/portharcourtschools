@@ -29,7 +29,7 @@ export function generateGoogleCalendarUrl({
     return date.toISOString().replace(/-|:|\.\d+/g, "");
   };
 
-  const detailsText = `${description || title}\n\nVenue: ${venue}\nOrganised by PortHarcourtSchools`;
+  const detailsText = `${description || title}\n\nVenue: ${venue}\nOrganised by Schools Voice (Formerly Port Harcourt Schools)`;
 
   const params = new URLSearchParams({
     action: "TEMPLATE",

@@ -10,7 +10,8 @@ import { DashboardShell } from "../dashboard/dashboard-shell";
 import { type SchoolRowData, SchoolsTable } from "./schools-table";
 
 export const metadata = {
-  title: "Schools Directory — Admin Portal | PortHarcourtSchools",
+  title:
+    "Schools Directory — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminSchoolsPageProps {

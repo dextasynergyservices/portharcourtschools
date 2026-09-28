@@ -6,7 +6,8 @@ import { DashboardShell } from "../../../dashboard/dashboard-shell";
 import { PostForm } from "../../post-form";
 
 export const metadata = {
-  title: "Edit Article — Admin Portal | PortHarcourtSchools",
+  title:
+    "Edit Article — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface EditPostPageProps {

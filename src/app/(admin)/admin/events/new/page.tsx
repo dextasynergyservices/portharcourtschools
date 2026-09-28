@@ -4,7 +4,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { EventForm } from "../event-form";
 
 export const metadata = {
-  title: "New Event — Admin Portal | PortHarcourtSchools",
+  title:
+    "New Event — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function NewEventPage() {

@@ -21,21 +21,21 @@ const DEFAULT_PARTNERS: MarqueePartnerItem[] = [
   {
     id: "seed-1",
     name: "GeePhill Education Consulting",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://geeffill.com",
     tier: "strategic",
   },
   {
     id: "seed-2",
     name: "EdFocus Africa",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://edfocus.africa",
     tier: "headline",
   },
   {
     id: "seed-3",
     name: "Rivers State Teachers Forum",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://portharcourtschools.com/about",
     tier: "education",
   },
@@ -49,7 +49,7 @@ const DEFAULT_PARTNERS: MarqueePartnerItem[] = [
   {
     id: "seed-5",
     name: "Rivers Schools Proprietors Forum",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://portharcourtschools.com/schools",
     tier: "corporate",
   },

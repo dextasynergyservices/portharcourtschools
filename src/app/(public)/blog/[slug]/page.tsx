@@ -81,11 +81,12 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Article Not Found — PortHarcourtSchools",
+      title:
+        "Article Not Found — Schools Voice (Formerly Port Harcourt Schools)",
     };
   }
 
-  const title = `${post.title} — PortHarcourtSchools Blog`;
+  const title = `${post.title} — Schools Voice (Formerly Port Harcourt Schools)`;
   const description =
     post.excerpt ||
     "In-depth analysis and educational clarity from inside Port Harcourt's schools.";
@@ -169,14 +170,14 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
     dateModified: post.updatedAt?.toISOString(),
     author: {
       "@type": "Person",
-      name: post.author?.name || "PortHarcourtSchools Editorial Staff",
+      name: post.author?.name || "Schools Voice Editorial Staff",
     },
     publisher: {
       "@type": "Organization",
-      name: "PortHarcourtSchools",
+      name: "Schools Voice (Formerly Port Harcourt Schools)",
       logo: {
         "@type": "ImageObject",
-        url: `${siteUrl}/images/brand-logo.jpg`,
+        url: `${siteUrl}/images/logo.png`,
       },
     },
     mainEntityOfPage: {

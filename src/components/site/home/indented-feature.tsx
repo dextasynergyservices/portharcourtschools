@@ -66,11 +66,12 @@ export function IndentedFeature() {
           {/* Left-Aligned Paragraph */}
           <FadeIn delay={0.16}>
             <p className="text-base sm:text-xl text-[#35362B] leading-relaxed font-sans max-w-3xl text-left">
-              PortHarcourtSchools’ Teachers Spotlight Initiative honors,
-              develops, and supports outstanding educators across Rivers State.
-              The program identifies excellence in curriculum delivery, provides
-              educators with platforms to publish teaching insights, and
-              connects classroom champions to institutional partners.
+              Schools Voice’s (formerly Port Harcourt Schools) Teachers
+              Spotlight Initiative honors, develops, and supports outstanding
+              educators across Rivers State. The program identifies excellence
+              in curriculum delivery, provides educators with platforms to
+              publish teaching insights, and connects classroom champions to
+              institutional partners.
             </p>
           </FadeIn>
 

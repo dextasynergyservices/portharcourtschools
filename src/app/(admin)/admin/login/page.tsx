@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import logoImg from "../../../../../public/images/logo.png";
 import { type LoginActionState, loginAction } from "./actions";
 
 export default function AdminLoginPage() {
@@ -28,17 +29,23 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 relative h-20 w-20">
+          <div className="mb-2 relative h-16 w-16">
             <Image
-              src="/images/brand-logo.jpg"
-              alt="PortHarcourtSchools Logo"
+              src={logoImg}
+              alt="Schools Voice Logo"
               fill
-              sizes="80px"
+              sizes="64px"
               className="object-contain rounded-md"
               priority
               loading="eager"
             />
           </div>
+          <h2 className="font-heading font-black text-xl text-[#003cb8] tracking-tight">
+            Schools Voice
+          </h2>
+          <p className="text-[11px] text-[#556987] font-medium mb-3">
+            Formerly Port Harcourt Schools
+          </p>
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"

@@ -63,12 +63,12 @@ export async function generateMetadata({
 
   if (!event) {
     return {
-      title: "Event Not Found — PortHarcourtSchools",
+      title: "Event Not Found — Schools Voice (Formerly Port Harcourt Schools)",
       description: "The requested education event could not be found.",
     };
   }
 
-  const title = `${event.title} — Events | PortHarcourtSchools`;
+  const title = `${event.title} — Events | Schools Voice (Formerly Port Harcourt Schools)`;
   const description =
     event.description.length > 160
       ? `${event.description.slice(0, 157)}...`

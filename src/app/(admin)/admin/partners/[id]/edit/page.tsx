@@ -6,7 +6,8 @@ import { DashboardShell } from "../../../dashboard/dashboard-shell";
 import { PartnerForm } from "../../partner-form";
 
 export const metadata = {
-  title: "Edit Partner — Admin Portal | PortHarcourtSchools",
+  title:
+    "Edit Partner — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface EditPartnerPageProps {

@@ -26,7 +26,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { RegistrationsTable } from "./registrations-table";
 
 export const metadata = {
-  title: "Event Registrations & Attendees — Admin Portal | PortHarcourtSchools",
+  title:
+    "Event Registrations & Attendees — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminRegistrationsPageProps {

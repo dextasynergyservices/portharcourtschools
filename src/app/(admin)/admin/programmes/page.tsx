@@ -12,7 +12,8 @@ import { ProgrammeActionsMenu } from "./programme-actions-menu";
 import { ProgrammesTable } from "./programmes-table";
 
 export const metadata = {
-  title: "Programmes & Training — Admin Portal | PortHarcourtSchools",
+  title:
+    "Programmes & Training — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminProgrammesPageProps {

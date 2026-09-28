@@ -327,7 +327,7 @@ export function MediaClient({
             <DialogTitle>Edit Image Alt Text</DialogTitle>
             <DialogDescription>
               Alt text ensures accessibility for screen readers and improves SEO
-              visibility for Port Harcourt Schools.
+              visibility for Schools Voice (formerly Port Harcourt Schools).
             </DialogDescription>
           </DialogHeader>
 

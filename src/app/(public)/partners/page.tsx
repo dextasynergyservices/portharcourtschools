@@ -22,9 +22,10 @@ import { db, partners } from "@/lib/db";
 export const revalidate = 900;
 
 export const metadata: Metadata = {
-  title: "Partners — PortHarcourtSchools | EdFocus Africa",
+  title:
+    "Partners — Schools Voice (Formerly Port Harcourt Schools) | EdFocus Africa",
   description:
-    "Education grows faster when the right people invest in it. Partner with PortHarcourtSchools across events, content, accredited programmes, and CSR initiatives.",
+    "Education grows faster when the right people invest in it. Partner with Schools Voice (formerly Port Harcourt Schools) across events, content, accredited programmes, and CSR initiatives.",
   alternates: {
     canonical: "/partners",
   },
@@ -59,7 +60,7 @@ const DEFAULT_PARTNERS = [
   {
     id: "default-1",
     name: "GeePhill Education Consulting",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://geeffill.com",
     tier: "strategic",
     description:
@@ -68,7 +69,7 @@ const DEFAULT_PARTNERS = [
   {
     id: "default-2",
     name: "EdFocus Africa",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: "https://edfocus.africa",
     tier: "headline",
     description:
@@ -77,7 +78,7 @@ const DEFAULT_PARTNERS = [
   {
     id: "default-3",
     name: "Rivers State Teachers Forum",
-    logo: "/images/brand-logo.jpg",
+    logo: "/images/logo.png",
     website: null,
     tier: "education",
     description:

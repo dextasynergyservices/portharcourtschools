@@ -32,7 +32,7 @@ export function UserInviteEmail({
   name = "Team Member",
   email = "member@example.com",
   role = "editor",
-  inviterName = "Port Harcourt Schools Leadership",
+  inviterName = "Schools Voice Leadership",
   setPassLink = "https://portharcourtschools.ng/admin/set-password?token=sample",
   expiresInHours = 48,
 }: UserInviteEmailProps) {
@@ -48,17 +48,18 @@ export function UserInviteEmail({
     <Html>
       <Head />
       <Preview>
-        You have been invited to join the PortHarcourtSchools team as {roleName}
+        You have been invited to join the Schools Voice (formerly Port Harcourt
+        Schools) team as {roleName}
       </Preview>
       <Body style={mainStyle}>
         <Container style={containerStyle}>
           {/* Brand Header */}
           <Section style={logoBarStyle}>
             <Img
-              src={`${siteUrl}/images/brand-logo.jpg`}
+              src={`${siteUrl}/images/logo.png`}
               width="64"
               height="64"
-              alt="PortHarcourtSchools"
+              alt="Schools Voice — Formerly Port Harcourt Schools"
               style={logoStyle}
             />
           </Section>
@@ -70,8 +71,8 @@ export function UserInviteEmail({
             <Text style={paragraphStyle}>Hello {name},</Text>
             <Text style={paragraphStyle}>
               {inviterName} has invited you to join the{" "}
-              <strong>PortHarcourtSchools</strong> administrative team with the
-              role of:
+              <strong>Schools Voice</strong> (formerly Port Harcourt Schools)
+              administrative team with the role of:
             </Text>
 
             <Section style={roleCardStyle}>
@@ -109,8 +110,8 @@ export function UserInviteEmail({
           {/* Footer */}
           <Section style={footerStyle}>
             <Text style={footerTextStyle}>
-              &copy; {new Date().getFullYear()} PortHarcourtSchools &bull;
-              EdFocus Africa
+              &copy; {new Date().getFullYear()} Schools Voice (Formerly Port
+              Harcourt Schools) &bull; EdFocus Africa
               <br />
               Trans-Amadi Commercial Layout, Port Harcourt, Rivers State,
               Nigeria

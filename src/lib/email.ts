@@ -10,7 +10,7 @@ const DEFAULT_ADMIN_EMAIL =
   process.env.ADMIN_NOTIFICATION_EMAIL || "hello@portharcourtschools.ng";
 const SENDER_EMAIL =
   process.env.RESEND_FROM_EMAIL ||
-  "PortHarcourtSchools <notifications@portharcourtschools.ng>";
+  "Schools Voice <notifications@portharcourtschools.ng>";
 
 interface SendContactNotificationParams {
   name: string;
@@ -215,7 +215,8 @@ export async function sendUserInviteEmail(
       from: SENDER_EMAIL,
       to: [params.to],
       replyTo: DEFAULT_ADMIN_EMAIL,
-      subject: "You're Invited to Join PortHarcourtSchools",
+      subject:
+        "You're Invited to Join Schools Voice (Formerly Port Harcourt Schools)",
       react: UserInviteEmail({
         name: params.name,
         email: params.to,

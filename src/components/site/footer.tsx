@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logoWhiteImg from "../../../public/images/logo_white.png";
 
 export function SiteFooter() {
   const [email, setEmail] = useState("");
@@ -32,11 +33,9 @@ export function SiteFooter() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block group">
               <Image
-                src="/images/brand-logo.jpg"
-                alt="PortHarcourtSchools"
-                width={160}
-                height={50}
-                className="h-12 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
+                src={logoWhiteImg}
+                alt="Schools Voice"
+                className="h-16 w-auto object-contain rounded transition-transform group-hover:scale-[1.02]"
               />
             </Link>
 
@@ -190,7 +189,8 @@ export function SiteFooter() {
         {/* Bottom copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#D9DEEC]/70">
           <p>
-            © {new Date().getFullYear()} PortHarcourtSchools. Built by{" "}
+            © {new Date().getFullYear()} Schools Voice (Formerly Port Harcourt
+            Schools). Built by{" "}
             <a
               href="https://www.dexta.services"
               target="_blank"

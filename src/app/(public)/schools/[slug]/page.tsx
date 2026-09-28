@@ -46,7 +46,8 @@ export async function generateMetadata({
 
   if (!school || school.length === 0) {
     return {
-      title: "School Not Found | PortHarcourtSchools",
+      title:
+        "School Not Found | Schools Voice (Formerly Port Harcourt Schools)",
     };
   }
 
@@ -55,7 +56,7 @@ export async function generateMetadata({
   const levelsStr = (s.levels || []).join(", ");
 
   return {
-    title: `${s.name} — Port Harcourt Schools Directory`,
+    title: `${s.name} — Schools Voice Directory (Formerly Port Harcourt Schools)`,
     description:
       s.description ||
       `Explore ${s.name}, an accredited ${s.schoolType} school located in ${areaName}, Port Harcourt offering ${s.curriculum} curriculum for ${levelsStr}.`,
@@ -63,7 +64,7 @@ export async function generateMetadata({
       canonical: `/schools/${s.slug}`,
     },
     openGraph: {
-      title: `${s.name} | PortHarcourtSchools`,
+      title: `${s.name} | Schools Voice (Formerly Port Harcourt Schools)`,
       description:
         s.description ||
         `Verified details, tuition fees in Naira, and admissions contact for ${s.name} in Port Harcourt.`,
@@ -201,7 +202,7 @@ export default async function SchoolDetailPage({
             Back to Schools Directory
           </Link>
           <span className="text-xs text-muted-foreground hidden sm:inline">
-            Port Harcourt Schools &gt; {areaName} &gt; {school.name}
+            Schools Voice &gt; {areaName} &gt; {school.name}
           </span>
         </div>
       </div>

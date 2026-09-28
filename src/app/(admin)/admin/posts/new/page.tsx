@@ -5,7 +5,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { PostForm } from "../post-form";
 
 export const metadata = {
-  title: "New Article — Admin Portal | PortHarcourtSchools",
+  title:
+    "New Article — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function NewPostPage() {

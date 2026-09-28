@@ -54,8 +54,8 @@ export function EventRegistrationConfirmedEmail({
           {/* Brand Logo Header */}
           <Section style={logoBar}>
             <Img
-              src={`${siteUrl}/images/brand-logo.jpg`}
-              alt="PortHarcourtSchools"
+              src={`${siteUrl}/images/logo.png`}
+              alt="Schools Voice — Formerly Port Harcourt Schools"
               width="64"
               height="64"
               style={{ margin: "0 auto", display: "block" }}
@@ -153,8 +153,9 @@ export function EventRegistrationConfirmedEmail({
             </Text>
 
             <Text style={footerCopyright}>
-              © {new Date().getFullYear()} PortHarcourtSchools. All rights
-              reserved. Port Harcourt, Rivers State, Nigeria.
+              © {new Date().getFullYear()} Schools Voice (Formerly Port Harcourt
+              Schools). All rights reserved. Port Harcourt, Rivers State,
+              Nigeria.
             </Text>
           </Section>
         </Container>

@@ -10,7 +10,8 @@ import { BlogPostsFeed } from "./blog-posts-feed";
 export const revalidate = 180;
 
 export const metadata: Metadata = {
-  title: "Editorial Blog — PortHarcourtSchools | Stories, Insights & Clarity",
+  title:
+    "Editorial Blog — Schools Voice (Formerly Port Harcourt Schools) | Stories, Insights & Clarity",
   description:
     "Stories, insights and clarity from inside Port Harcourt's schools. Breaking down curriculum changes, safeguarding practices, school leadership challenges and everyday realities of education.",
   alternates: {
