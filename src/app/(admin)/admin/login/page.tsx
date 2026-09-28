@@ -2,6 +2,7 @@
 
 import { AlertCircle, Eye, EyeOff, Lock } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,23 +30,15 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-2 relative h-16 w-16">
+          <Link href="/" className="mb-1.5 inline-block group">
             <Image
               src={logoImg}
               alt="Schools Voice Logo"
-              fill
-              sizes="64px"
-              className="object-contain rounded-md"
               priority
               loading="eager"
+              className="h-20 sm:h-24 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
-          </div>
-          <h2 className="font-heading font-black text-xl text-[#003cb8] tracking-tight">
-            Schools Voice
-          </h2>
-          <p className="text-[11px] text-[#556987] font-medium mb-3">
-            Formerly Port Harcourt Schools
-          </p>
+          </Link>
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"
