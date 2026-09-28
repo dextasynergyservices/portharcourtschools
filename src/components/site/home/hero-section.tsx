@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
@@ -46,14 +45,13 @@ export interface HeroSectionData {
 }
 
 export function HeroSection({ data }: { data?: HeroSectionData }) {
-  const badge =
-    data?.badge || "Independent Educational Resource & Policy Forum";
+  const badge = data?.badge || "Schools Voice";
   const part1 = data?.headlinePart1 || "Clarity for Parents.";
   const part2 = data?.headlinePart2 || "Growth for Schools.";
   const part3 = data?.headlinePart3 || "Voice for Teachers.";
   const subtitle =
     data?.subtitle ||
-    "PortHarcourtSchools is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.";
+    "Schools Voice (formerly Port Harcourt Schools) is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.";
   const primaryCtaLabel = data?.primaryCtaLabel || "Explore School Directory";
   const primaryCtaLink = data?.primaryCtaLink || "/schools";
   const secondaryCtaLabel = data?.secondaryCtaLabel || "Upcoming Events";
@@ -146,8 +144,13 @@ export function HeroSection({ data }: { data?: HeroSectionData }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center rounded-[2px] border border-[#003cb8]/30 bg-white/85 backdrop-blur-xs px-3.5 py-1.5 font-display text-[11px] font-bold uppercase tracking-widest text-[#003cb8] shadow-xs">
-                <span>{badge}</span>
+              <div className="inline-flex flex-col items-start rounded-[2px] border border-[#003cb8]/30 bg-white/90 backdrop-blur-xs px-3.5 py-1.5 shadow-xs">
+                <span className="font-display text-[11px] font-bold uppercase tracking-widest text-[#003cb8]">
+                  {badge}
+                </span>
+                <span className="text-[9px] font-medium text-[#556987] tracking-normal">
+                  Formerly Port Harcourt Schools
+                </span>
               </div>
             </motion.div>
 
@@ -259,25 +262,7 @@ export function HeroSection({ data }: { data?: HeroSectionData }) {
                 <motion.div
                   style={{ y: badgeY }}
                   className="absolute bottom-4 left-4 right-4 z-10 p-3.5 bg-white/95 backdrop-blur-md rounded-[2px] border border-[#D9DEEC] shadow-md flex items-center justify-between gap-3 will-change-transform"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-[2px] bg-[#003cb8] text-[#fcda04]">
-                      <CheckCircle2 className="size-4.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-heading text-xs font-bold text-[#151B2E] truncate">
-                        Verified Classroom Benchmark
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider truncate">
-                        Rivers State Education Network
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="font-display text-[10px] font-bold text-[#003cb8] bg-[#EEF2FA] px-2 py-1 rounded-[2px] uppercase shrink-0">
-                    350+ Schools
-                  </span>
-                </motion.div>
+                ></motion.div>
               </motion.div>
             </div>
           </div>

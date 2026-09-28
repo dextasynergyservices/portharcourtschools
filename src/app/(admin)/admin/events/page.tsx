@@ -12,7 +12,8 @@ import { EventActionsMenu } from "./event-actions-menu";
 import { EventsTable } from "./events-table";
 
 export const metadata = {
-  title: "Events & Summits — Admin Portal | PortHarcourtSchools",
+  title:
+    "Events & Summits — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminEventsPageProps {

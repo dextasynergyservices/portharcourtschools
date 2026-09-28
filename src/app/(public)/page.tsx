@@ -42,10 +42,9 @@ import { db, partners, posts } from "@/lib/db";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title:
-    "PortHarcourtSchools — Clarity for Parents. Growth for Schools. Voice for Teachers.",
+  title: "Schools Voice — Formerly Port Harcourt Schools",
   description:
-    "PortHarcourtSchools is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.",
+    "Schools Voice (formerly Port Harcourt Schools) is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.",
   alternates: {
     canonical: "/",
   },
@@ -190,11 +189,12 @@ export default async function HomePage() {
       {
         "@type": "EducationalOrganization",
         "@id": `${siteUrl}/#organization`,
-        name: "PortHarcourtSchools",
+        name: "Schools Voice",
+        alternateName: "Formerly Port Harcourt Schools",
         url: siteUrl,
-        logo: `${siteUrl}/images/brand-logo.jpg`,
+        logo: `${siteUrl}/images/logo.png`,
         description:
-          "Media, programmes and community platform building a stronger education ecosystem across Port Harcourt and Rivers State.",
+          "Schools Voice (formerly Port Harcourt Schools) is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and Rivers State.",
         sameAs: [
           "https://instagram.com/portharcourtschools",
           "https://facebook.com/portharcourtschools",

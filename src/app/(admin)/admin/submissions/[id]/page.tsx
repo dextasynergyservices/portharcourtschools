@@ -18,7 +18,8 @@ import { contactSubmissions, db } from "@/lib/db";
 import { DashboardShell } from "../../dashboard/dashboard-shell";
 
 export const metadata: Metadata = {
-  title: "Submission Details — Admin Portal | PortHarcourtSchools",
+  title:
+    "Submission Details — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface SubmissionDetailPageProps {

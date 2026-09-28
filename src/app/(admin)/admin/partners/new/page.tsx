@@ -4,7 +4,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { PartnerForm } from "../partner-form";
 
 export const metadata = {
-  title: "Add New Partner — Admin Portal | PortHarcourtSchools",
+  title:
+    "Add New Partner — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function NewPartnerPage() {

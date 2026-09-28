@@ -51,13 +51,15 @@ export function FounderTeaser({ data }: { data?: FounderTeaserData }) {
     "When we improve the people, systems and conversations around education, we improve the future of our children.";
   const author = data?.author || "Dr. Grace Phillips-Ayonuwe";
   const role =
-    data?.role || "Founder, Port Harcourt Schools & GeePhill Education";
+    data?.role ||
+    "Founder, Schools Voice (Formerly Port Harcourt Schools) & GeePhill Education";
   const bio =
     data?.bio ||
-    "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. With a PhD in Educational Administration/Management, she founded Port Harcourt Schools to connect families, celebrate educators through the Teachers Spotlight Awards & Summit, and build a trusted education ecosystem across Port Harcourt and beyond.";
+    "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. With a PhD in Educational Administration/Management, she founded Schools Voice (formerly Port Harcourt Schools) to connect families, celebrate educators through the Teachers Spotlight Awards & Summit, and build a trusted education ecosystem across Port Harcourt and beyond.";
   const image = data?.image || "/images/dr-grace-phillips-ayonuwe.jpg";
   const imageAlt =
-    data?.imageAlt || `${author} — Founder of Port Harcourt Schools`;
+    data?.imageAlt ||
+    `${author} — Founder of Schools Voice (Formerly Port Harcourt Schools)`;
   const ctaLabel = data?.ctaLabel || "Read Full Profile & Vision";
   const ctaLink = data?.ctaLink || "/about#founder";
 

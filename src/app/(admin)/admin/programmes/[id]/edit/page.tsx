@@ -6,7 +6,8 @@ import { DashboardShell } from "../../../dashboard/dashboard-shell";
 import { ProgrammeForm } from "../../programme-form";
 
 export const metadata = {
-  title: "Edit Programme — Admin Portal | PortHarcourtSchools",
+  title:
+    "Edit Programme — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface EditProgrammePageProps {

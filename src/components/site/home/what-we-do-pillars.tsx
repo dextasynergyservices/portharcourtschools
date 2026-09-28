@@ -46,7 +46,7 @@ export function WhatWeDoPillars({ cmsData }: { cmsData?: WhatWeDoCmsData }) {
     {
       number: "01",
       title: "Media & Community",
-      subtitle: "@portharcourtschools Platform",
+      subtitle: "Schools Voice Platform",
       desc: "Our platform reaches thousands of parents and educators with weekly content on school admissions, curriculum updates, child safeguarding, and day-to-day school life across Port Harcourt.",
       icon: BookOpen,
       href: "/blog",

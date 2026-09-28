@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { db, verificationTokens } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Set Password | PortHarcourtSchools",
+  title: "Set Password | Schools Voice (Formerly Port Harcourt Schools)",
   description: "Set your secure password to join the administrative team.",
 };
 

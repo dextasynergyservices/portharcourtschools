@@ -39,7 +39,7 @@ export async function getSiteSettings(): Promise<SiteSetting> {
         // Initialize default row if not found
         const defaultData = {
           id: DEFAULT_SETTINGS_ID,
-          siteName: "Port Harcourt Schools",
+          siteName: "Schools Voice",
           siteTagline:
             "The definitive educational resource for families and schools in Port Harcourt.",
           siteDescription:
@@ -100,7 +100,7 @@ export async function getSiteSettings(): Promise<SiteSetting> {
         // Fallback in-memory object so public site never breaks
         return {
           id: DEFAULT_SETTINGS_ID,
-          siteName: "Port Harcourt Schools",
+          siteName: "Schools Voice",
           siteTagline:
             "The definitive educational resource for families and schools in Port Harcourt.",
           siteDescription:

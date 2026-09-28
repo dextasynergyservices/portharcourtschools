@@ -9,7 +9,8 @@ import { DashboardShell } from "../../../dashboard/dashboard-shell";
 import { SchoolForm } from "../../school-form";
 
 export const metadata = {
-  title: "Edit School — Admin Portal | PortHarcourtSchools",
+  title:
+    "Edit School — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface EditSchoolPageProps {

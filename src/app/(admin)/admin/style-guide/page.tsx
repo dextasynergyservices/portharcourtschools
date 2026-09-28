@@ -136,8 +136,8 @@ export default function AdminStyleGuidePage() {
           <div className="flex items-center gap-4">
             <Link href="/admin/dashboard" className="relative h-12 w-36 block">
               <Image
-                src="/images/brand-logo.jpg"
-                alt="PortHarcourtSchools Logo"
+                src="/images/logo.png"
+                alt="Schools Voice — Formerly Port Harcourt Schools"
                 fill
                 className="object-contain object-left"
                 priority
@@ -249,7 +249,7 @@ export default function AdminStyleGuidePage() {
                 Section Heading (Sora Bold / 700)
               </span>
               <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#151B2E]">
-                Port Harcourt Schools Directory & Editorial Insights
+                Schools Voice Directory & Editorial Insights
               </h2>
             </div>
 

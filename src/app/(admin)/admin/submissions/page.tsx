@@ -10,7 +10,8 @@ import { DashboardShell } from "../dashboard/dashboard-shell";
 import { SubmissionsTable } from "./submissions-table";
 
 export const metadata: Metadata = {
-  title: "Submissions Inbox — Admin Portal | PortHarcourtSchools",
+  title:
+    "Submissions Inbox — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function AdminSubmissionsPage() {

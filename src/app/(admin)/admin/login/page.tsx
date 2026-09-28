@@ -2,6 +2,7 @@
 
 import { AlertCircle, Eye, EyeOff, Lock } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import logoImg from "../../../../../public/images/logo.png";
 import { type LoginActionState, loginAction } from "./actions";
 
 export default function AdminLoginPage() {
@@ -28,17 +30,15 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 relative h-20 w-20">
+          <Link href="/" className="mb-1.5 inline-block group">
             <Image
-              src="/images/brand-logo.jpg"
-              alt="PortHarcourtSchools Logo"
-              fill
-              sizes="80px"
-              className="object-contain rounded-md"
+              src={logoImg}
+              alt="Schools Voice Logo"
               priority
               loading="eager"
+              className="h-20 sm:h-24 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"

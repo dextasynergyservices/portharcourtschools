@@ -20,9 +20,10 @@ import {
 export const revalidate = 900;
 
 export const metadata: Metadata = {
-  title: "About Us — PortHarcourtSchools | EdFocus Africa",
+  title:
+    "About Us — Schools Voice (Formerly Port Harcourt Schools) | EdFocus Africa",
   description:
-    "PortHarcourtSchools is the education media and community platform of EdFocus Africa, built to close the information and support gap between schools, parents and the education system.",
+    "Schools Voice (formerly Port Harcourt Schools) is the education media and community platform of EdFocus Africa, built to close the information and support gap between schools, parents and the education system.",
   alternates: {
     canonical: "/about",
   },
@@ -107,14 +108,14 @@ export default async function AboutPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    name: "About PortHarcourtSchools",
+    name: "About Schools Voice (Formerly Port Harcourt Schools)",
     description: heroSubtitle,
     url: `${siteUrl}/about`,
     publisher: {
       "@type": "EducationalOrganization",
-      name: "PortHarcourtSchools / EdFocus Africa",
+      name: "Schools Voice (Formerly Port Harcourt Schools) / EdFocus Africa",
       url: siteUrl,
-      logo: `${siteUrl}/images/brand-logo.jpg`,
+      logo: `${siteUrl}/images/logo.png`,
     },
   };
 

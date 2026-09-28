@@ -60,7 +60,8 @@ export function MeetTheFounder({ data }: { data?: AboutFounderData }) {
     "Education strategist, consultant, researcher, and convener of the Teachers Spotlight Awards & Summit.";
   const author = data?.author || "Dr. Grace Phillips-Ayonuwe";
   const role =
-    data?.role || "Founder, Port Harcourt Schools & GeePhill Education";
+    data?.role ||
+    "Founder, Schools Voice (Formerly Port Harcourt Schools) & GeePhill Education";
   const quote =
     data?.quote ||
     "When we improve the people, systems and conversations around education, we improve the future of our children.";
@@ -70,7 +71,7 @@ export function MeetTheFounder({ data }: { data?: AboutFounderData }) {
     data?.letterTitle || "Building a Trusted Education Ecosystem";
   const p1 =
     data?.letterParagraph1 ||
-    "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. She is the Founder of Port Harcourt Schools, an education media and information platform created to connect parents, schools, teachers and education stakeholders while making reliable information about schools, education opportunities and events more accessible to families in Port Harcourt and beyond.";
+    "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. She is the Founder of Schools Voice (formerly Port Harcourt Schools), an education media and information platform created to connect parents, schools, teachers and education stakeholders while making reliable information about schools, education opportunities and events more accessible to families in Port Harcourt and beyond.";
   const p2 =
     data?.letterParagraph2 ||
     "With a PhD in Educational Administration/Management, Dr. Grace brings together academic knowledge, practical school experience, teacher development and education communication in her work across the education sector.";
@@ -79,7 +80,7 @@ export function MeetTheFounder({ data }: { data?: AboutFounderData }) {
     "She is also the Founder and Director of GeePhill Education, an education consultancy providing services including school consulting, teacher training, curriculum development, recruitment and education marketing. Through her work with schools and educators, she focuses on strengthening teaching practice, school leadership, systems and sustainable school growth.";
   const p4 =
     data?.letterParagraph4 ||
-    "Dr. Grace is also the convener of the Teachers Spotlight Awards & Summit (TSA), an initiative created to recognise, celebrate and equip educators while creating a platform for conversations around the future of education. Through Port Harcourt Schools, her vision is to build a trusted education ecosystem where parents can discover schools, schools can tell their stories, educators can access opportunities and the wider education community can stay informed about what is happening across Port Harcourt.\n\nHer work is driven by a simple belief: when we improve the people, systems and conversations around education, we improve the future of our children.";
+    "Dr. Grace is also the convener of the Teachers Spotlight Awards & Summit (TSA), an initiative created to recognise, celebrate and equip educators while creating a platform for conversations around the future of education. Through Schools Voice (formerly Port Harcourt Schools), her vision is to build a trusted education ecosystem where parents can discover schools, schools can tell their stories, educators can access opportunities and the wider education community can stay informed about what is happening across Port Harcourt.\n\nHer work is driven by a simple belief: when we improve the people, systems and conversations around education, we improve the future of our children.";
 
   return (
     <section
@@ -223,7 +224,14 @@ export function MeetTheFounder({ data }: { data?: AboutFounderData }) {
                   <span className="font-bold text-[#fcda04]">
                     Guiding Philosophy
                   </span>
-                  <span>Port Harcourt Schools</span>
+                  <div className="flex flex-col text-right">
+                    <span className="font-semibold text-white">
+                      Schools Voice
+                    </span>
+                    <span className="text-[10px] text-[#D9DEEC]/70">
+                      Formerly Port Harcourt Schools
+                    </span>
+                  </div>
                 </div>
               </div>
             </FadeIn>

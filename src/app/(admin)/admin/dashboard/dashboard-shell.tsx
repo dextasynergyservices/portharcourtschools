@@ -31,6 +31,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import logoImg from "../../../../../public/images/logo.png";
 import { SignOutButton } from "./sign-out-button";
 
 interface DashboardShellProps {
@@ -95,24 +96,19 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
       {/* Desktop Sidebar (hidden on mobile, visible on md+) */}
       <aside className="hidden md:flex md:w-64 md:flex-col border-r border-[#D9DEEC] bg-white shrink-0">
         {/* Brand Header */}
-        <div className="flex h-16 items-center justify-between border-b border-[#D9DEEC] px-6">
-          <Link href="/admin/dashboard" className="relative h-10 w-32 block">
+        <div className="flex h-20 items-center px-5 border-b border-[#D9DEEC]">
+          <Link
+            href="/admin/dashboard"
+            className="flex items-center group py-1"
+          >
             <Image
-              src="/images/brand-logo.jpg"
-              alt="PortHarcourtSchools Logo"
-              fill
-              sizes="128px"
-              className="object-contain object-left"
+              src={logoImg}
+              alt="Schools Voice Logo"
               priority
               loading="eager"
+              className="h-14 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
           </Link>
-          <Badge
-            variant="outline"
-            className="text-[9px] uppercase tracking-wider font-bold border-[#D9DEEC] bg-[#EEF2FA] text-[#184098]"
-          >
-            Console
-          </Badge>
         </div>
 
         {/* Navigation list */}
@@ -124,7 +120,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Desktop Top Header (hidden on mobile, visible on md+) */}
-        <header className="sticky top-0 z-30 hidden md:flex h-16 items-center justify-between border-b border-[#D9DEEC] bg-white px-6">
+        <header className="sticky top-0 z-30 hidden md:flex h-20 items-center justify-between border-b border-[#D9DEEC] bg-white px-6">
           <div className="flex items-center gap-3">
             <span className="font-heading font-bold text-sm text-[#151B2E]">
               Admin Portal
@@ -176,16 +172,17 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         </header>
 
         {/* Mobile Header (< md) */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#D9DEEC] bg-white px-4 md:hidden">
-          <Link href="/admin/dashboard" className="relative h-8 w-28 block">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#D9DEEC] bg-white px-4 md:hidden">
+          <Link
+            href="/admin/dashboard"
+            className="flex items-center group py-1"
+          >
             <Image
-              src="/images/brand-logo.jpg"
-              alt="PortHarcourtSchools Logo"
-              fill
-              sizes="112px"
-              className="object-contain object-left"
+              src={logoImg}
+              alt="Schools Voice Logo"
               priority
               loading="eager"
+              className="h-11 w-auto object-contain"
             />
           </Link>
 
@@ -220,15 +217,16 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
               >
                 <SheetHeader className="border-b border-[#D9DEEC] p-4 text-left">
                   <div className="flex items-center justify-between">
-                    <div className="relative h-9 w-32">
+                    <Link
+                      href="/admin/dashboard"
+                      className="flex items-center group py-1"
+                    >
                       <Image
-                        src="/images/brand-logo.jpg"
-                        alt="PortHarcourtSchools Logo"
-                        fill
-                        sizes="128px"
-                        className="object-contain object-left"
+                        src={logoImg}
+                        alt="Schools Voice Logo"
+                        className="h-11 w-auto object-contain"
                       />
-                    </div>
+                    </Link>
                     <Badge
                       variant="outline"
                       className="text-[9px] uppercase tracking-wider font-bold border-[#D9DEEC] bg-[#EEF2FA] text-[#184098]"

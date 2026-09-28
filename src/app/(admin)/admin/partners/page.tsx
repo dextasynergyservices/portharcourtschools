@@ -12,7 +12,8 @@ import { PartnerActionsMenu } from "./partner-actions-menu";
 import { PartnersTable } from "./partners-table";
 
 export const metadata = {
-  title: "Partners — Admin Portal | PortHarcourtSchools",
+  title:
+    "Partners — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminPartnersPageProps {

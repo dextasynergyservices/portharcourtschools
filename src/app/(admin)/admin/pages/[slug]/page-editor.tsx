@@ -2018,7 +2018,7 @@ export function PageEditor({ config, initialData }: PageEditorProps) {
                       updateSectionField("hero", "title", e.target.value)
                     }
                     className="mt-1 text-xs"
-                    placeholder="e.g. Port Harcourt Schools Directory"
+                    placeholder="e.g. Schools Voice Directory"
                   />
                 </div>
               </div>

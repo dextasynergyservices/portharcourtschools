@@ -11,7 +11,8 @@ import {
 export const revalidate = 900;
 
 export const metadata: Metadata = {
-  title: "Research & Focus Areas — PortHarcourtSchools | EdFocus Africa",
+  title:
+    "Research & Focus Areas — Schools Voice (Formerly Port Harcourt Schools) | EdFocus Africa",
   description:
     "Explore our 6 core strategic focus areas shaping foundational literacy, early childhood, secondary STEM pathways, and educator leadership across Port Harcourt.",
   alternates: {

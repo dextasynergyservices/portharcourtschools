@@ -66,7 +66,7 @@ export default async function PublicSchoolsPage({
     (pageData.sections as Record<string, Record<string, string | undefined>>) ||
     {};
   const heroBadge = sections.hero?.badge || "Garden City Education Index";
-  const heroTitle = sections.hero?.title || "Port Harcourt Schools Directory";
+  const heroTitle = sections.hero?.title || "Schools Voice Directory";
   const heroSubtitle =
     sections.hero?.subtitle ||
     "Find, compare, and connect with accredited nursery, primary, and secondary institutions across Port Harcourt. Explore transparent tuition ranges in Naira, academic curriculums, and campus facilities.";
@@ -226,9 +226,14 @@ export default async function PublicSchoolsPage({
           </FadeIn>
 
           <FadeIn delay={0.1}>
-            <h1 className="font-heading font-black text-2xl sm:text-4xl lg:text-5xl text-[#151B2E] tracking-tight">
-              {heroTitle}
-            </h1>
+            <div>
+              <h1 className="font-heading font-black text-2xl sm:text-4xl lg:text-5xl text-[#151B2E] tracking-tight">
+                {heroTitle}
+              </h1>
+              <p className="text-xs sm:text-sm font-semibold text-[#184098] uppercase tracking-wider mt-1.5">
+                Formerly Port Harcourt Schools Directory
+              </p>
+            </div>
           </FadeIn>
 
           <FadeIn delay={0.2}>

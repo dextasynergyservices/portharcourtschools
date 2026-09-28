@@ -8,7 +8,8 @@ import { DashboardShell } from "../../dashboard/dashboard-shell";
 import { SchoolForm } from "../school-form";
 
 export const metadata = {
-  title: "Add New School — Admin Portal | PortHarcourtSchools",
+  title:
+    "Add New School — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 export default async function NewSchoolPage() {

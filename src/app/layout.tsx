@@ -44,30 +44,30 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: {
-    default: "PortHarcourtSchools — Schools Directory, Blog & Community",
-    template: "%s | PortHarcourtSchools",
+    default: "Schools Voice — Formerly Port Harcourt Schools",
+    template: "%s | Schools Voice (Formerly Port Harcourt Schools)",
   },
   description:
-    "The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
+    "Schools Voice (formerly Port Harcourt Schools) — The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
   icons: {
-    icon: "/images/brand-logo.jpg",
-    shortcut: "/images/brand-logo.jpg",
-    apple: "/images/brand-logo.jpg",
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
   },
   openGraph: {
-    title: "PortHarcourtSchools — Schools Directory, Blog & Community",
+    title: "Schools Voice — Formerly Port Harcourt Schools",
     description:
-      "The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
+      "Schools Voice (formerly Port Harcourt Schools) — The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
     url: siteUrl,
-    siteName: "PortHarcourtSchools",
+    siteName: "Schools Voice",
     locale: "en_NG",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "PortHarcourtSchools",
+    title: "Schools Voice (Formerly Port Harcourt Schools)",
     description:
-      "The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
+      "Schools Voice (formerly Port Harcourt Schools) — The authoritative education platform for Port Harcourt: schools directory, teachers summit & awards, and parent clarity.",
   },
 };
 

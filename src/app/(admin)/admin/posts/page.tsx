@@ -12,7 +12,8 @@ import { PostActionsMenu } from "./post-actions-menu";
 import { PostsTable } from "./posts-table";
 
 export const metadata = {
-  title: "Blog & Editorial Posts — Admin Portal | PortHarcourtSchools",
+  title:
+    "Blog & Editorial Posts — Admin Portal | Schools Voice (Formerly Port Harcourt Schools)",
 };
 
 interface AdminPostsPageProps {

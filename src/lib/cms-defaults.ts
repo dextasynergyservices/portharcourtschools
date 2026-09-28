@@ -20,12 +20,12 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
     path: "/",
     defaultSections: {
       hero: {
-        badge: "Independent Educational Resource & Policy Forum",
+        badge: "Schools Voice",
         headlinePart1: "Clarity for Parents.",
         headlinePart2: "Growth for Schools.",
         headlinePart3: "Voice for Teachers.",
         subtitle:
-          "PortHarcourtSchools is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.",
+          "Schools Voice (formerly Port Harcourt Schools) is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.",
         primaryCtaLabel: "Explore School Directory",
         primaryCtaLink: "/schools",
         secondaryCtaLabel: "Upcoming Events",
@@ -39,11 +39,11 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         quote:
           "When we improve the people, systems and conversations around education, we improve the future of our children.",
         author: "Dr. Grace Phillips-Ayonuwe",
-        role: "Founder, Port Harcourt Schools & GeePhill Education",
-        bio: "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. With a PhD in Educational Administration/Management, she founded Port Harcourt Schools to connect families, celebrate educators through the Teachers Spotlight Awards & Summit, and build a trusted education ecosystem across Port Harcourt and beyond.",
+        role: "Founder, Schools Voice (Formerly Port Harcourt Schools) & GeePhill Education",
+        bio: "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. With a PhD in Educational Administration/Management, she founded Schools Voice (formerly Port Harcourt Schools) to connect families, celebrate educators through the Teachers Spotlight Awards & Summit, and build a trusted education ecosystem across Port Harcourt and beyond.",
         image: "/images/dr-grace-phillips-ayonuwe.jpg",
         imageAlt:
-          "Dr. Grace Phillips-Ayonuwe — Founder of Port Harcourt Schools",
+          "Dr. Grace Phillips-Ayonuwe — Founder of Schools Voice (Formerly Port Harcourt Schools)",
         ctaLabel: "Read Full Profile & Vision",
         ctaLink: "/about#founder",
       },
@@ -91,7 +91,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         badge: "Community Invitation",
         title: "There’s a Place for You Here.",
         subtitle:
-          "Whether you’re a parent seeking clarity, a teacher looking to sharpen your craft, or a school ready to share your story—PortHarcourtSchools is built for you.",
+          "Whether you’re a parent seeking clarity, a teacher looking to sharpen your craft, or a school ready to share your story—Schools Voice (formerly Port Harcourt Schools) is built for you.",
         primaryCtaLabel: "Explore School Directory",
         primaryCtaLink: "/schools",
         secondaryCtaLabel: "Get In Touch",
@@ -100,7 +100,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
     },
     defaultSeo: {
       title:
-        "PortHarcourtSchools — Port Harcourt's Definitive Education Directory & Community",
+        "Schools Voice (Formerly Port Harcourt Schools) — Definitive Education Directory & Community",
       description:
         "Discover top schools, view tuition ranges, explore curriculum choices, and connect with education leaders in Port Harcourt.",
     },
@@ -117,7 +117,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         badge: "EdFocus Africa Platform",
         title: "Who We Are",
         subtitle:
-          "PortHarcourtSchools is the education media and community platform of EdFocus Africa, built to close the information and support gap between schools, parents and the education system meant to serve them.",
+          "Schools Voice (formerly Port Harcourt Schools) is the education media and community platform of EdFocus Africa, built to close the information and support gap between schools, parents and the education system meant to serve them.",
         narrative:
           "We started as a content page documenting school life across Port Harcourt. Today, we’ve grown into a platform that combines media, structured programmes and public recognition, all working toward the same goal: an education ecosystem where good schools and good teachers are visible, supported and celebrated.",
       },
@@ -137,21 +137,21 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         subtitle:
           "Education strategist, consultant, researcher, and convener of the Teachers Spotlight Awards & Summit.",
         author: "Dr. Grace Phillips-Ayonuwe",
-        role: "Founder, Port Harcourt Schools & GeePhill Education",
+        role: "Founder, Schools Voice (Formerly Port Harcourt Schools) & GeePhill Education",
         quote:
           "When we improve the people, systems and conversations around education, we improve the future of our children.",
         image: "/images/dr-grace-phillips-ayonuwe.jpg",
         imageAlt:
-          "Dr. Grace Phillips-Ayonuwe — Founder of Port Harcourt Schools",
+          "Dr. Grace Phillips-Ayonuwe — Founder of Schools Voice (Formerly Port Harcourt Schools)",
         letterTitle: "Building a Trusted Education Ecosystem",
         letterParagraph1:
-          "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. She is the Founder of Port Harcourt Schools, an education media and information platform created to connect parents, schools, teachers and education stakeholders while making reliable information about schools, education opportunities and events more accessible to families in Port Harcourt and beyond.",
+          "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. She is the Founder of Schools Voice (formerly Port Harcourt Schools), an education media and information platform created to connect parents, schools, teachers and education stakeholders while making reliable information about schools, education opportunities and events more accessible to families in Port Harcourt and beyond.",
         letterParagraph2:
           "With a PhD in Educational Administration/Management, Dr. Grace brings together academic knowledge, practical school experience, teacher development and education communication in her work across the education sector.",
         letterParagraph3:
           "She is also the Founder and Director of GeePhill Education, an education consultancy providing services including school consulting, teacher training, curriculum development, recruitment and education marketing. Through her work with schools and educators, she focuses on strengthening teaching practice, school leadership, systems and sustainable school growth.",
         letterParagraph4:
-          "Dr. Grace is also the convener of the Teachers Spotlight Awards & Summit (TSA), an initiative created to recognise, celebrate and equip educators while creating a platform for conversations around the future of education. Through Port Harcourt Schools, her vision is to build a trusted education ecosystem where parents can discover schools, schools can tell their stories, educators can access opportunities and the wider education community can stay informed about what is happening across Port Harcourt.\n\nHer work is driven by a simple belief: when we improve the people, systems and conversations around education, we improve the future of our children.",
+          "Dr. Grace is also the convener of the Teachers Spotlight Awards & Summit (TSA), an initiative created to recognise, celebrate and equip educators while creating a platform for conversations around the future of education. Through Schools Voice (formerly Port Harcourt Schools), her vision is to build a trusted education ecosystem where parents can discover schools, schools can tell their stories, educators can access opportunities and the wider education community can stay informed about what is happening across Port Harcourt.\n\nHer work is driven by a simple belief: when we improve the people, systems and conversations around education, we improve the future of our children.",
       },
       whoWeServe: {
         badge: "One Platform • Three Audiences",
@@ -175,7 +175,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         badge: "From Content to Institution",
         title: "Our Story",
         narrative:
-          "PortHarcourtSchools grew out of years of hands-on work with schools across Rivers State, training teachers, advising school leaders, and watching firsthand how much good work goes unseen. What began as a media page became a platform built to change that, starting with the people already doing the work: teachers, school leaders and the parents trusting them with their children.",
+          "Schools Voice (formerly Port Harcourt Schools) grew out of years of hands-on work with schools across Rivers State, training teachers, advising school leaders, and watching firsthand how much good work goes unseen. What began as a media page became a platform built to change that, starting with the people already doing the work: teachers, school leaders and the parents trusting them with their children.",
         primaryCtaLabel: "Explore Programmes",
         primaryCtaLink: "/events#programmes",
         secondaryCtaLabel: "Join the Community",
@@ -189,9 +189,10 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
       },
     },
     defaultSeo: {
-      title: "About Us — PortHarcourtSchools | EdFocus Africa",
+      title:
+        "About Us — Schools Voice (Formerly Port Harcourt Schools) | EdFocus Africa",
       description:
-        "PortHarcourtSchools is the education media and community platform of EdFocus Africa, built to close the information and support gap in Port Harcourt.",
+        "Schools Voice (formerly Port Harcourt Schools) is the education media and community platform of EdFocus Africa, built to close the information and support gap in Port Harcourt.",
     },
   },
 
@@ -206,7 +207,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         badge: "Strategic Collaboration",
         title: "Education Grows Faster When the Right People Invest in It.",
         subtitle:
-          "PortHarcourtSchools collaborates with forward-thinking organisations, brands, foundations, and education advocates to build high-impact programmes and expand access to quality schooling across Rivers State.",
+          "Schools Voice (formerly Port Harcourt Schools) collaborates with forward-thinking organisations, brands, foundations, and education advocates to build high-impact programmes and expand access to quality schooling across Rivers State.",
       },
       valueProp: {
         badge: "Strategic Value",
@@ -231,9 +232,10 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
       },
     },
     defaultSeo: {
-      title: "Partners & Sponsors — PortHarcourtSchools",
+      title:
+        "Partners & Sponsors — Schools Voice (Formerly Port Harcourt Schools)",
       description:
-        "Partner with PortHarcourtSchools to reach educators, parents, and school leaders across Rivers State.",
+        "Partner with Schools Voice (formerly Port Harcourt Schools) to reach educators, parents, and school leaders across Rivers State.",
     },
   },
 
@@ -248,7 +250,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
         badge: "Public Engagement & Training",
         title: "Events & Programmes",
         subtitle:
-          "From our flagship education summit to ongoing professional development masterclasses, this is where PortHarcourtSchools convenes, honors, and equips educators across Rivers State.",
+          "From our flagship education summit to ongoing professional development masterclasses, this is where Schools Voice (formerly Port Harcourt Schools) convenes, honors, and equips educators across Rivers State.",
       },
       upcomingHeader: {
         badge: "Calendar & Gatherings",
@@ -262,7 +264,8 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
       },
     },
     defaultSeo: {
-      title: "Education Events & Summits — PortHarcourtSchools",
+      title:
+        "Education Events & Summits — Schools Voice (Formerly Port Harcourt Schools)",
       description:
         "Explore conferences, workshops, and teacher training events in Port Harcourt, Rivers State.",
     },
@@ -277,7 +280,7 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
     defaultSections: {
       hero: {
         badge: "Garden City Education Index",
-        title: "Port Harcourt Schools Directory",
+        title: "Schools Voice Directory",
         subtitle:
           "Find, compare, and connect with accredited nursery, primary, and secondary institutions across Port Harcourt. Explore transparent tuition ranges in Naira, academic curriculums, and campus facilities.",
       },
@@ -310,9 +313,9 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
       },
     },
     defaultSeo: {
-      title: "Contact Us — PortHarcourtSchools",
+      title: "Contact Us — Schools Voice (Formerly Port Harcourt Schools)",
       description:
-        "Get in touch with the PortHarcourtSchools team for questions, partnerships, or school directory inquiries.",
+        "Get in touch with the Schools Voice (formerly Port Harcourt Schools) team for questions, partnerships, or school directory inquiries.",
     },
   },
 
@@ -398,7 +401,8 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
       },
     },
     defaultSeo: {
-      title: "Research & Focus Areas — PortHarcourtSchools",
+      title:
+        "Research & Focus Areas — Schools Voice (Formerly Port Harcourt Schools)",
       description:
         "Explore our research and strategic focus areas shaping early years, primary, secondary, STEM, and teacher leadership in Port Harcourt.",
       ogImage: "/images/ph_hero_classroom.jpg",
