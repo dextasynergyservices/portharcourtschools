@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { MediaItem } from "@/lib/db/schema";
+import { normalizeImageUrl } from "@/lib/utils";
 
 interface MediaLibraryDrawerProps {
   open: boolean;
@@ -138,7 +139,7 @@ export function MediaLibraryDrawer({
                   >
                     <div className="relative aspect-video w-full bg-muted/40 overflow-hidden">
                       <Image
-                        src={item.url}
+                        src={normalizeImageUrl(item.url)}
                         alt={item.altText || item.filename}
                         fill
                         unoptimized
