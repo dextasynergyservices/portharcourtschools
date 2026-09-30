@@ -19,6 +19,7 @@ import { MediaLibraryDrawer } from "@/components/admin/media/media-library-drawe
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { normalizeImageUrl } from "@/lib/utils";
 
 interface SectionImageUploadProps {
   label: string;
@@ -237,7 +238,7 @@ export function SectionImageUpload({
             className={`relative ${aspectClass} w-full overflow-hidden rounded-md border border-[#D9DEEC] bg-white shadow-2xs`}
           >
             <Image
-              src={value}
+              src={normalizeImageUrl(value)}
               alt={currentAlt || "Cover preview"}
               fill
               unoptimized
@@ -246,10 +247,21 @@ export function SectionImageUpload({
             <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/65 backdrop-blur-xs p-1 rounded-md shadow-sm">
               <button
                 type="button"
-                onClick={() => setIsDrawerOpen(true)}
-                className="text-[11px] px-2 py-0.5 bg-white text-neutral-900 hover:bg-neutral-100 rounded font-bold transition-colors shadow-2xs"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[11px] px-2.5 py-1 bg-white text-neutral-900 hover:bg-neutral-100 rounded font-bold transition-colors shadow-2xs inline-flex items-center gap-1"
+                title="Upload new image from your device"
               >
-                Change
+                <UploadCloud className="size-3 text-[#184098]" />
+                <span>Change</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsDrawerOpen(true)}
+                className="text-[11px] px-2 py-1 bg-white/20 hover:bg-white/30 text-white rounded font-medium transition-colors inline-flex items-center gap-1"
+                title="Select from media library"
+              >
+                <FolderOpen className="size-3" />
+                <span>Library</span>
               </button>
               <button
                 type="button"

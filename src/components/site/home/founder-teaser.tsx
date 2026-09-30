@@ -4,6 +4,7 @@ import { Quote } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FadeIn } from "@/components/site/motion-wrapper";
+import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
 
 function ArrowDiagonal({
   className = "size-3.5 ml-1",
@@ -56,7 +57,10 @@ export function FounderTeaser({ data }: { data?: FounderTeaserData }) {
   const bio =
     data?.bio ||
     "Dr. Grace Phillips-Ayonuwe is an education strategist, consultant, teacher educator, content creator and entrepreneur passionate about improving the quality of education in Nigeria. With a PhD in Educational Administration/Management, she founded Schools Voice (formerly Port Harcourt Schools) to connect families, celebrate educators through the Teachers Spotlight Awards & Summit, and build a trusted education ecosystem across Port Harcourt and beyond.";
-  const image = data?.image || "/images/dr-grace-phillips-ayonuwe.jpg";
+  const image = normalizeImageUrl(
+    data?.image,
+    "/images/dr-grace-phillips-ayonuwe.jpg",
+  );
   const imageAlt =
     data?.imageAlt ||
     `${author} — Founder of Schools Voice (Formerly Port Harcourt Schools)`;
@@ -144,6 +148,7 @@ export function FounderTeaser({ data }: { data?: FounderTeaserData }) {
                       sizes="(max-width: 1024px) 100vw, 40vw"
                       className="object-cover object-center hover:scale-[1.01] transition-transform duration-300"
                       priority
+                      unoptimized={isExternalImage(image)}
                     />
                   </div>
 
