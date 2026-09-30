@@ -65,7 +65,7 @@ export function BottomTabBar({ onOpenMore, moreOpen }: BottomTabBarProps) {
           ? "translate3d(0, 100%, 0)"
           : "translate3d(0, 0, 0)",
       }}
-      className={`fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#003cb8] border-t border-[#002c8c] shadow-2xl safe-bottom will-change-transform select-none transition-transform duration-300 ease-out ${
+      className={`fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#071E54] border-t border-white/10 shadow-2xl safe-bottom will-change-transform select-none transition-transform duration-300 ease-out ${
         isBarHidden ? "pointer-events-none" : "pointer-events-auto"
       }`}
     >
@@ -80,19 +80,26 @@ export function BottomTabBar({ onOpenMore, moreOpen }: BottomTabBarProps) {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-90 touch-target select-none text-white ${
-                isActive
-                  ? "font-bold scale-105 opacity-100"
-                  : "opacity-80 hover:opacity-100"
-              }`}
+              className="flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 touch-target select-none"
             >
-              <div className="relative text-white">
-                <Icon className="size-5 text-white" />
-                {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-white" />
+              <div className="relative">
+                {isActive ? (
+                  <div className="size-8 rounded-full bg-[#FDC82F] flex items-center justify-center text-[#071E54] shadow-xs">
+                    <Icon className="size-4.5 text-[#071E54]" />
+                  </div>
+                ) : (
+                  <div className="size-8 flex items-center justify-center text-white/75 hover:text-white">
+                    <Icon className="size-5 text-white/75" />
+                  </div>
                 )}
               </div>
-              <span className="text-[11px] mt-1 font-medium tracking-tight text-white">
+              <span
+                className={`text-[10px] mt-0.5 tracking-tight ${
+                  isActive
+                    ? "font-bold text-[#FDC82F]"
+                    : "font-medium text-white/75"
+                }`}
+              >
                 {tab.name}
               </span>
             </Link>
@@ -106,19 +113,26 @@ export function BottomTabBar({ onOpenMore, moreOpen }: BottomTabBarProps) {
           aria-expanded={moreOpen}
           aria-haspopup="dialog"
           aria-label="Open menu and more navigation links"
-          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-90 touch-target select-none text-white ${
-            moreOpen
-              ? "font-bold scale-105 opacity-100"
-              : "opacity-80 hover:opacity-100"
-          }`}
+          className="flex flex-col items-center justify-center flex-1 py-1 transition-all active:scale-95 touch-target select-none"
         >
-          <div className="relative text-white">
-            <MoreHorizontal className="size-5 text-white" />
-            {moreOpen && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 rounded-full bg-white" />
+          <div className="relative">
+            {moreOpen ? (
+              <div className="size-8 rounded-full bg-[#FDC82F] flex items-center justify-center text-[#071E54] shadow-xs">
+                <MoreHorizontal className="size-4.5 text-[#071E54]" />
+              </div>
+            ) : (
+              <div className="size-8 flex items-center justify-center text-white/75 hover:text-white">
+                <MoreHorizontal className="size-5 text-white/75" />
+              </div>
             )}
           </div>
-          <span className="text-[11px] mt-1 font-medium tracking-tight text-white">
+          <span
+            className={`text-[10px] mt-0.5 tracking-tight ${
+              moreOpen
+                ? "font-bold text-[#FDC82F]"
+                : "font-medium text-white/75"
+            }`}
+          >
             More
           </span>
         </button>

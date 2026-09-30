@@ -5,6 +5,7 @@ import {
   Building,
   Check,
   DollarSign,
+  FolderOpen,
   Globe,
   GraduationCap,
   Image as ImageIcon,
@@ -18,6 +19,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { MediaLibraryDrawer } from "@/components/admin/media/media-library-drawer";
+import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -162,6 +165,7 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || "");
   const [gallery, setGallery] = useState<string[]>(initialData?.gallery || []);
   const [newGalleryUrl, setNewGalleryUrl] = useState("");
+  const [isGalleryDrawerOpen, setIsGalleryDrawerOpen] = useState(false);
 
   const [description, setDescription] = useState(
     initialData?.description || "",
@@ -871,63 +875,56 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
 
       {/* 6. Media & Gallery Tab */}
       {activeTab === "media" && (
-        <Card className="p-5 bg-white border-[#D9DEEC] rounded-lg shadow-xs space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="school-logo"
-                className="text-xs font-bold text-[#151B2E] uppercase tracking-wider block"
-              >
-                School Crest / Logo URL
-              </label>
-              <Input
-                id="school-logo"
-                value={logo}
-                onChange={(e) => setLogo(e.target.value)}
-                placeholder="https://.../logo.png"
-                className="text-xs h-10 border-[#D9DEEC]"
-              />
-            </div>
+        <Card className="p-5 bg-white border-[#D9DEEC] rounded-lg shadow-xs space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SectionImageUpload
+              label="School Crest / Logo"
+              description="Upload school crest or pick from the media library."
+              value={logo}
+              folder="schools/logos"
+              aspectRatio="square"
+              onChange={({ url }) => setLogo(url)}
+            />
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="school-cover"
-                className="text-xs font-bold text-[#151B2E] uppercase tracking-wider block"
-              >
-                Campus Cover Photo URL
-              </label>
-              <Input
-                id="school-cover"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://.../campus.jpg"
-                className="text-xs h-10 border-[#D9DEEC]"
-              />
-            </div>
+            <SectionImageUpload
+              label="Campus Cover Photo"
+              description="Primary banner photo displayed at the top of the school page."
+              value={coverImage}
+              folder="schools/covers"
+              aspectRatio="video"
+              onChange={({ url }) => setCoverImage(url)}
+            />
           </div>
 
-          {coverImage && (
-            <div className="relative h-40 rounded-lg overflow-hidden border border-[#D9DEEC] bg-[#FAFBFF]">
-              <Image
-                src={coverImage}
-                alt="Cover Preview"
-                fill
-                unoptimized
-                className="object-cover"
-              />
-            </div>
-          )}
-
           {/* Gallery Items */}
-          <div className="pt-3 border-t border-[#D9DEEC]/60 space-y-3">
-            <h3 className="text-xs font-bold text-[#151B2E] uppercase tracking-wider">
-              Campus Gallery Photos
-            </h3>
+          <div className="pt-4 border-t border-[#D9DEEC]/60 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-[#151B2E] uppercase tracking-wider">
+                  Campus Gallery Photos ({gallery.length})
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Showcase campus facilities, classrooms, sports grounds, and
+                  science laboratories.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => setIsGalleryDrawerOpen(true)}
+                variant="outline"
+                className="h-9 text-xs border-[#D9DEEC] text-[#184098] bg-[#EEF2FA]/50 hover:bg-[#EEF2FA] shrink-0 font-bold"
+              >
+                <FolderOpen className="size-3.5 mr-1.5 text-[#184098]" />
+                Choose from Gallery
+              </Button>
+            </div>
+
             <div className="flex items-center gap-2">
               <Input
                 value={newGalleryUrl}
                 onChange={(e) => setNewGalleryUrl(e.target.value)}
-                placeholder="Paste image URL to add to campus gallery..."
+                placeholder="Or paste external image URL to add..."
                 className="text-xs h-10 border-[#D9DEEC]"
               />
               <Button
@@ -936,7 +933,7 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
                 variant="outline"
                 className="h-10 text-xs border-[#D9DEEC] text-[#184098] shrink-0 font-bold"
               >
-                <Plus className="size-3.5 mr-1" /> Add Image
+                <Plus className="size-3.5 mr-1" /> Add URL
               </Button>
             </div>
 
@@ -957,7 +954,7 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
                     <button
                       type="button"
                       onClick={() => handleRemoveGalleryImage(idx)}
-                      className="absolute top-1.5 right-1.5 size-6 bg-red-600 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1.5 right-1.5 size-6 bg-red-600 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                       title="Remove image"
                     >
                       <Trash2 className="size-3" />
@@ -966,6 +963,15 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
                 ))}
               </div>
             )}
+
+            <MediaLibraryDrawer
+              open={isGalleryDrawerOpen}
+              onOpenChange={setIsGalleryDrawerOpen}
+              onSelect={({ url }) => {
+                setGallery((prev) => [...prev, url]);
+                toast.success("Photo added to campus gallery");
+              }}
+            />
           </div>
         </Card>
       )}
