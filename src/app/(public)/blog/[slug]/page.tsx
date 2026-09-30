@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getOrSetCache } from "@/lib/cache";
 import { db, posts } from "@/lib/db";
+import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
 import { ShareButtons } from "./share-buttons";
 
 export const revalidate = 600;
@@ -300,12 +301,13 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8">
           <div className="relative h-[300px] sm:h-[480px] w-full rounded-[2px] overflow-hidden border border-[#D9DEEC] shadow-lg bg-[#EEF2FA]">
             <Image
-              src={post.coverImage}
+              src={normalizeImageUrl(post.coverImage)}
               alt={post.title}
               fill
               sizes="(max-width: 1024px) 100vw, 1024px"
               className="object-cover"
               priority
+              unoptimized={isExternalImage(post.coverImage)}
             />
           </div>
         </div>
@@ -383,12 +385,13 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
                     {rPost.coverImage && (
                       <div className="relative h-40 w-full bg-[#EEF2FA] overflow-hidden">
                         <Image
-                          src={rPost.coverImage}
+                          src={normalizeImageUrl(rPost.coverImage)}
                           alt={rPost.title}
                           fill
                           loading="lazy"
                           sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover group-hover:scale-103 transition-transform duration-300"
+                          unoptimized={isExternalImage(rPost.coverImage)}
                         />
                       </div>
                     )}
