@@ -20,12 +20,12 @@ export const CMS_PAGES_CONFIG: Record<string, PageConfig> = {
     path: "/",
     defaultSections: {
       hero: {
-        badge: "Schools Voice",
-        headlinePart1: "Clarity for Parents.",
-        headlinePart2: "Growth for Schools.",
-        headlinePart3: "Voice for Teachers.",
+        badge: "SCHOOLS VOICE - YOUR VOICE FOR EDUCATION",
+        headlinePart1: "YOUR VOICE",
+        headlinePart2: "FOR EDUCATION.",
+        headlinePart3: "",
         subtitle:
-          "Schools Voice (formerly Port Harcourt Schools) is the media, programmes and community platform building a stronger education ecosystem across Port Harcourt and beyond, one school, one teacher, one parent at a time.",
+          "Schools Voice, formerly Port Harcourt Schools, is an education news blog and media platform where parents discover schools, schools connect with families, and teachers find opportunities. We share education news, stories, insights, events, and resources from Nigeria and around the world.",
         primaryCtaLabel: "Explore School Directory",
         primaryCtaLink: "/schools",
         secondaryCtaLabel: "Upcoming Events",

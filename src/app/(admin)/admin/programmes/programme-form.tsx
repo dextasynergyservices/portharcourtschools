@@ -10,10 +10,10 @@ import {
   Save,
   XCircle,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -405,31 +405,14 @@ export function ProgrammeForm({ initialData, userRole }: ProgrammeFormProps) {
               Cover Media
             </CardTitle>
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="prog-cover"
-                className="block text-xs font-bold text-[#151B2E]"
-              >
-                Cover Image URL
-              </label>
-              <Input
-                id="prog-cover"
-                placeholder="/images/ph_hero_classroom.jpg"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="h-9 text-xs border-[#D9DEEC]"
-              />
-              {coverImage && (
-                <div className="relative mt-2 h-28 w-full rounded-md overflow-hidden border border-[#D9DEEC]">
-                  <Image
-                    src={coverImage}
-                    alt="Cover preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
-            </div>
+            <SectionImageUpload
+              label="Programme Cover Image"
+              description="Upload an image from your device or pick one from the media gallery."
+              value={coverImage}
+              folder="programmes"
+              aspectRatio="video"
+              onChange={({ url }) => setCoverImage(url)}
+            />
           </Card>
         </div>
       </div>

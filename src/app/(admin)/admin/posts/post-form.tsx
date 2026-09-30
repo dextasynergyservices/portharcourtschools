@@ -9,11 +9,11 @@ import {
   Save,
   Send,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { TiptapEditor } from "@/components/admin/tiptap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -393,31 +393,16 @@ export function PostForm({ initialData, categories, userRole }: PostFormProps) {
               </Select>
             </div>
 
-            {/* Cover Image URL */}
+            {/* Cover Image Upload */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="post-cover"
-                className="block text-xs font-bold text-[#151B2E]"
-              >
-                Cover Image URL
-              </label>
-              <Input
-                id="post-cover"
-                placeholder="/images/ph_hero_classroom.jpg"
+              <SectionImageUpload
+                label="Featured Cover Image"
+                description="Upload an image from your device or pick one from the media gallery."
                 value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="h-9 text-xs border-[#D9DEEC]"
+                folder="blog"
+                aspectRatio="video"
+                onChange={({ url }) => setCoverImage(url)}
               />
-              {coverImage && (
-                <div className="relative mt-2 h-28 w-full rounded-[2px] overflow-hidden border border-[#D9DEEC]">
-                  <Image
-                    src={coverImage}
-                    alt="Cover preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Tags */}
