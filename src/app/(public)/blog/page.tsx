@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FadeIn } from "@/components/site/motion-wrapper";
 import { categories, db, posts } from "@/lib/db";
+import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
 import { BlogPostsFeed } from "./blog-posts-feed";
 
 export const revalidate = 180;
@@ -229,15 +230,13 @@ export default async function BlogListingPage({ searchParams }: BlogPageProps) {
                     {/* Cover Photo */}
                     <div className="lg:col-span-6 relative min-h-[280px] lg:min-h-[420px] bg-[#EEF2FA] overflow-hidden">
                       <Image
-                        src={
-                          featuredPost.coverImage ||
-                          "/images/ph_hero_classroom.jpg"
-                        }
+                        src={normalizeImageUrl(featuredPost.coverImage)}
                         alt={featuredPost.title}
                         fill
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         className="object-cover group-hover:scale-102 transition-transform duration-500"
                         priority
+                        unoptimized={isExternalImage(featuredPost.coverImage)}
                       />
                     </div>
 

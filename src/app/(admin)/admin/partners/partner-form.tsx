@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Globe,
-  Image as ImageIcon,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { ArrowLeft, Globe, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { SectionImageUpload } from "@/components/admin/media/section-image-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -233,56 +228,15 @@ export function PartnerForm({ initialData }: PartnerFormProps) {
               Partner Logo
             </CardTitle>
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="partner-logo"
-                className="block text-xs font-bold text-[#151B2E]"
-              >
-                Logo Image URL or Local Path{" "}
-                <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="partner-logo"
-                placeholder="/images/logo.png or https://cdn.example.com/logo.png"
-                value={logo}
-                onChange={(e) => setLogo(e.target.value)}
-                required
-                className="h-10 text-xs border-[#D9DEEC]"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Supported: Transparent PNG or SVG recommended. Local paths in
-                /images/ or external HTTPS URLs.
-              </p>
-            </div>
-
-            {/* Live Logo Preview Box */}
-            <div className="pt-2">
-              <span className="block text-xs font-semibold text-[#151B2E] mb-1.5">
-                Live Preview
-              </span>
-              <div className="h-28 w-full sm:w-64 rounded-md border border-[#D9DEEC] bg-[#F8FAFC] flex items-center justify-center p-4 relative overflow-hidden">
-                {logo ? (
-                  <div className="relative size-full flex items-center justify-center">
-                    {/* biome-ignore lint/performance/noImgElement: Live preview user logo */}
-                    <img
-                      src={logo}
-                      alt="Logo preview"
-                      className="max-h-full max-w-full object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground space-y-1">
-                    <ImageIcon className="size-6 mx-auto opacity-40" />
-                    <span className="text-[11px] block">
-                      Enter a logo URL above
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <SectionImageUpload
+              label="Partner Logo"
+              description="Transparent PNG or SVG recommended. Upload from device or choose from the media gallery."
+              value={logo}
+              folder="partners"
+              aspectRatio="square"
+              required
+              onChange={({ url }) => setLogo(url)}
+            />
           </Card>
         </div>
 

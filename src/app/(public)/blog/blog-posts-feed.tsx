@@ -10,6 +10,7 @@ import {
 } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
 import { type BlogCardPost, fetchMoreBlogPostsAction } from "./actions";
 
 function ArrowDiagonal({
@@ -109,12 +110,13 @@ export function BlogPostsFeed({
               {post.coverImage && (
                 <div className="relative h-44 w-full bg-[#EEF2FA] overflow-hidden">
                   <Image
-                    src={post.coverImage}
+                    src={normalizeImageUrl(post.coverImage)}
                     alt={post.title}
                     fill
                     loading="lazy"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover group-hover:scale-103 transition-transform duration-300"
+                    unoptimized={isExternalImage(post.coverImage)}
                   />
                 </div>
               )}
