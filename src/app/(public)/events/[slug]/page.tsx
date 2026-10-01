@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { EventMobileActionBar } from "@/components/site/events/event-mobile-action-bar";
 import { EventShareButtons } from "@/components/site/events/event-share-buttons";
 import { PartnerEventDialog } from "@/components/site/events/partner-event-dialog";
 import { RegisterEventDialog } from "@/components/site/events/register-event-dialog";
@@ -621,35 +622,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
         </div>
 
         {/* Mobile Fixed Bottom Action Bar */}
-        <div className="fixed bottom-16 inset-x-0 z-[9990] md:hidden bg-white/95 backdrop-blur-md border-t border-[#D9DEEC] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                {event.isPaid ? "Admission Fee" : "Admission"}
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="font-heading text-lg font-black text-[#151B2E]">
-                  {event.isPaid && event.price
-                    ? `₦${event.price.toLocaleString()}`
-                    : "Free"}
-                </span>
-                {event.isPaid && (
-                  <span className="text-[11px] text-muted-foreground">
-                    / person
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="shrink-0">
-              <RegisterEventDialog
-                event={event}
-                triggerClassName="h-10 px-5 rounded-md bg-[#184098] hover:bg-[#15327A] text-white font-bold text-xs shadow-sm transition-colors"
-                triggerText={event.isPaid ? "Get Tickets" : "Register Now"}
-              />
-            </div>
-          </div>
-        </div>
+        <EventMobileActionBar event={event} />
       </div>
     </>
   );
