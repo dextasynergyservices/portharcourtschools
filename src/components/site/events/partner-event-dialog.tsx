@@ -77,7 +77,7 @@ export function PartnerEventDialog({
               "bg-white text-[#184098] hover:bg-[#EEF2FA] hover:text-[#08276B] border border-white font-display font-bold text-xs uppercase tracking-wider px-4 h-11 shadow-xs transition-colors"
             }
           >
-            <Handshake className="size-3.5 mr-1.5 text-[#184098]" />
+            <Handshake className="size-4 text-current shrink-0" />
             <span>Partner With This Event</span>
           </Button>
         )}
