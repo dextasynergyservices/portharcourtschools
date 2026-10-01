@@ -88,8 +88,17 @@ export async function getR2PresignedUploadUrl({
 
     // Determine public CDN URL
     let fileUrl: string;
-    if (process.env.R2_PUBLIC_DOMAIN) {
-      const baseDomain = process.env.R2_PUBLIC_DOMAIN.replace(/\/$/, "");
+    const publicUrlOrDomain =
+      process.env.R2_PUBLIC_URL || process.env.R2_PUBLIC_DOMAIN;
+
+    if (publicUrlOrDomain) {
+      let baseDomain = publicUrlOrDomain.replace(/\/$/, "");
+      if (
+        !baseDomain.startsWith("http://") &&
+        !baseDomain.startsWith("https://")
+      ) {
+        baseDomain = `https://${baseDomain}`;
+      }
       fileUrl = `${baseDomain}/${key}`;
     } else {
       fileUrl = `https://${bucketName}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;

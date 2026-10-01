@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { normalizeImageUrl } from "@/lib/utils";
 import {
   checkSchoolSlugAvailabilityAction,
   createSchoolAction,
@@ -945,7 +946,7 @@ export function SchoolForm({ initialData, areas }: SchoolFormProps) {
                     className="relative group rounded-lg overflow-hidden border border-[#D9DEEC] aspect-video bg-[#FAFBFF]"
                   >
                     <Image
-                      src={url}
+                      src={normalizeImageUrl(url)}
                       alt={`Gallery ${idx + 1}`}
                       fill
                       unoptimized
