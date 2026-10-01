@@ -44,6 +44,8 @@ interface RegisterEventDialogProps {
   children?: React.ReactNode;
   triggerClassName?: string;
   triggerText?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function RegisterEventDialog({
@@ -52,8 +54,12 @@ export function RegisterEventDialog({
   children,
   triggerClassName,
   triggerText,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: RegisterEventDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -122,7 +128,10 @@ export function RegisterEventDialog({
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
+    if (!isControlled) {
+      setInternalOpen(newOpen);
+    }
+    controlledOnOpenChange?.(newOpen);
     if (!newOpen) {
       setTimeout(() => {
         setSubmitted(false);
@@ -170,9 +179,9 @@ export function RegisterEventDialog({
         )}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto p-0 gap-0 border-[#D9DEEC] bg-white rounded-lg shadow-xl">
+      <DialogContent className="sm:max-w-[560px] max-h-[92vh] flex flex-col p-0 gap-0 border-[#D9DEEC] bg-white rounded-xl shadow-2xl overflow-hidden [&>button]:text-white [&>button]:z-20 [&>button]:hover:opacity-100">
         {submitted && registrationResult ? (
-          <div className="p-6 sm:p-8 space-y-6 text-center">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 text-center">
             <div className="size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="size-9" />
             </div>
@@ -240,7 +249,7 @@ export function RegisterEventDialog({
                 <Button
                   type="button"
                   onClick={() => handleOpenChange(false)}
-                  className="w-full bg-[#184098] hover:bg-[#15327A] text-white font-bold text-sm py-3"
+                  className="w-full bg-[#184098] hover:bg-[#15327A] text-white font-bold text-sm py-3 cursor-pointer"
                 >
                   Close &amp; Return to Event
                 </Button>
@@ -251,7 +260,7 @@ export function RegisterEventDialog({
                   type="button"
                   variant="outline"
                   onClick={() => handleOpenChange(false)}
-                  className="text-xs text-muted-foreground border-[#D9DEEC]"
+                  className="text-xs text-muted-foreground border-[#D9DEEC] cursor-pointer"
                 >
                   I will pay later (Check your email)
                 </Button>
@@ -261,7 +270,7 @@ export function RegisterEventDialog({
         ) : (
           <>
             {/* Header with Pricing Banner */}
-            <DialogHeader className="p-6 bg-[#151B2E] text-white rounded-t-lg space-y-3">
+            <DialogHeader className="shrink-0 p-5 sm:p-6 bg-[#151B2E] text-white rounded-t-xl space-y-3 relative">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Badge
@@ -305,238 +314,247 @@ export function RegisterEventDialog({
             </DialogHeader>
 
             {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col flex-1 min-h-0 overflow-hidden"
+            >
               <input type="hidden" name="eventId" value={event.id} />
 
-              {error && (
-                <div className="p-3 rounded-md bg-red-50 border border-red-200 text-xs text-red-700">
-                  {error}
-                </div>
-              )}
-
-              {/* Ticket Tier Selector */}
-              {hasTiers && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="block text-xs font-bold text-[#151B2E]">
-                      Select Admission / Ticket Tier{" "}
-                      <span className="text-red-500">*</span>
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {tiers.length} Tiers Available
-                    </span>
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain">
+                {error && (
+                  <div className="p-3 rounded-md bg-red-50 border border-red-200 text-xs text-red-700">
+                    {error}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {tiers.map((tier) => {
-                      const isSelected =
-                        selectedTier?.id === tier.id ||
-                        (!selectedTier && tier.id === tiers[0]?.id);
-                      const isFree = Number(tier.price) === 0;
-                      return (
-                        <button
-                          key={tier.id}
-                          type="button"
-                          onClick={() => setSelectedTier(tier)}
-                          className={`p-3 rounded-lg border text-left transition-all relative cursor-pointer ${
-                            isSelected
-                              ? "border-[#184098] bg-[#EEF2FA] shadow-xs ring-2 ring-[#184098]"
-                              : "border-[#D9DEEC] bg-white hover:border-[#184098]/40 hover:bg-[#F8FAFC]"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-1 mb-1">
-                            <span className="font-heading text-xs font-bold text-[#151B2E] line-clamp-1">
-                              {tier.name}
-                            </span>
-                            {tier.badge && (
-                              <Badge
-                                variant="outline"
-                                className="text-[9px] px-1 py-0 h-4 border-amber-300 bg-amber-50 text-amber-800 shrink-0"
-                              >
-                                {tier.badge}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-baseline justify-between mt-1">
-                            <span className="font-mono text-xs font-black text-[#184098]">
-                              {isFree
-                                ? "Free (₦0)"
-                                : `₦${Number(tier.price).toLocaleString()}`}
-                            </span>
-                            {isSelected && (
-                              <span className="text-[10px] font-bold text-[#184098]">
-                                Selected ✓
-                              </span>
-                            )}
-                          </div>
-                          {tier.description && (
-                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
-                              {tier.description}
-                            </p>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* Quantity selector for ticket if paid */}
-              {isPaidSelection && (
-                <div className="p-3.5 rounded-md bg-[#EEF2FA] border border-[#D9DEEC] flex items-center justify-between">
-                  <div>
-                    <label
-                      htmlFor="quantity-select"
-                      className="block text-xs font-bold text-[#151B2E]"
-                    >
-                      Number of Attendees / Tickets
-                    </label>
-                    <span className="text-[11px] text-[#5C6479]">
-                      Registering multiple colleagues or staff?
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <select
-                      id="quantity-select"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="h-9 px-3 rounded border border-[#D9DEEC] bg-white text-xs font-bold text-[#151B2E]"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? "Ticket" : "Tickets"}
-                        </option>
-                      ))}
-                    </select>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-muted-foreground uppercase block font-semibold">
-                        Total
+                {/* Ticket Tier Selector */}
+                {hasTiers && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="block text-xs font-bold text-[#151B2E]">
+                        Select Admission / Ticket Tier{" "}
+                        <span className="text-red-500">*</span>
                       </span>
-                      <span className="text-sm font-black text-[#184098]">
-                        ₦{totalAmount.toLocaleString()}
+                      <span className="text-[11px] text-muted-foreground">
+                        {tiers.length} Tiers Available
                       </span>
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {tiers.map((tier) => {
+                        const isSelected =
+                          selectedTier?.id === tier.id ||
+                          (!selectedTier && tier.id === tiers[0]?.id);
+                        const isFree = Number(tier.price) === 0;
+                        return (
+                          <button
+                            key={tier.id}
+                            type="button"
+                            onClick={() => setSelectedTier(tier)}
+                            className={`p-3 rounded-lg border text-left transition-all relative cursor-pointer ${
+                              isSelected
+                                ? "border-[#184098] bg-[#EEF2FA] shadow-xs ring-2 ring-[#184098]"
+                                : "border-[#D9DEEC] bg-white hover:border-[#184098]/40 hover:bg-[#F8FAFC]"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="font-heading text-xs font-bold text-[#151B2E] line-clamp-1">
+                                {tier.name}
+                              </span>
+                              {tier.badge && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[9px] px-1 py-0 h-4 border-amber-300 bg-amber-50 text-amber-800 shrink-0"
+                                >
+                                  {tier.badge}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-baseline justify-between mt-1">
+                              <span className="font-mono text-xs font-black text-[#184098]">
+                                {isFree
+                                  ? "Free (₦0)"
+                                  : `₦${Number(tier.price).toLocaleString()}`}
+                              </span>
+                              {isSelected && (
+                                <span className="text-[10px] font-bold text-[#184098]">
+                                  Selected ✓
+                                </span>
+                              )}
+                            </div>
+                            {tier.description && (
+                              <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">
+                                {tier.description}
+                              </p>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Attendee Contact Information */}
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label
-                    htmlFor="fullName"
-                    className="block text-xs font-bold text-[#151B2E]"
-                  >
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    required
-                    placeholder="e.g. Dr. Ngozi Adeleke"
-                    className="h-10 border-[#D9DEEC] text-xs font-medium"
-                  />
-                </div>
+                {/* Quantity selector for ticket if paid */}
+                {isPaidSelection && (
+                  <div className="p-3.5 rounded-md bg-[#EEF2FA] border border-[#D9DEEC] flex items-center justify-between">
+                    <div>
+                      <label
+                        htmlFor="quantity-select"
+                        className="block text-xs font-bold text-[#151B2E]"
+                      >
+                        Number of Attendees / Tickets
+                      </label>
+                      <span className="text-[11px] text-[#5C6479]">
+                        Registering multiple colleagues or staff?
+                      </span>
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3">
+                      <select
+                        id="quantity-select"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
+                        className="h-9 px-3 rounded border border-[#D9DEEC] bg-white text-xs font-bold text-[#151B2E]"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((num) => (
+                          <option key={num} value={num}>
+                            {num} {num === 1 ? "Ticket" : "Tickets"}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="text-right">
+                        <span className="text-[10px] text-muted-foreground uppercase block font-semibold">
+                          Total
+                        </span>
+                        <span className="text-sm font-black text-[#184098]">
+                          ₦{totalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Attendee Contact Information */}
+                <div className="space-y-3">
                   <div className="space-y-1">
                     <label
-                      htmlFor="email"
+                      htmlFor="fullName"
                       className="block text-xs font-bold text-[#151B2E]"
                     >
-                      Email Address <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <Input
-                      id="email"
-                      name="email"
-                      type="email"
+                      id="fullName"
+                      name="fullName"
                       required
-                      placeholder="e.g. ngozi@greensprings.edu.ng"
+                      placeholder="e.g. Dr. Ngozi Adeleke"
                       className="h-10 border-[#D9DEEC] text-xs font-medium"
                     />
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="email"
+                        className="block text-xs font-bold text-[#151B2E]"
+                      >
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        placeholder="e.g. ngozi@greensprings.edu.ng"
+                        className="h-10 border-[#D9DEEC] text-xs font-medium"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="phone"
+                        className="block text-xs font-bold text-[#151B2E]"
+                      >
+                        WhatsApp / Phone <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required
+                        placeholder="e.g. 0803 123 4567"
+                        className="h-10 border-[#D9DEEC] text-xs font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="schoolName"
+                        className="block text-xs font-bold text-[#151B2E]"
+                      >
+                        School / Institution
+                      </label>
+                      <Input
+                        id="schoolName"
+                        name="schoolName"
+                        placeholder="e.g. Brookstone School, PH"
+                        className="h-10 border-[#D9DEEC] text-xs font-medium"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="role"
+                        className="block text-xs font-bold text-[#151B2E]"
+                      >
+                        Designation / Role
+                      </label>
+                      <Select
+                        id="role"
+                        name="role"
+                        defaultValue="teacher"
+                        className="h-10 border-[#D9DEEC] text-xs font-medium bg-white"
+                      >
+                        <option value="teacher">Classroom Teacher</option>
+                        <option value="principal">
+                          Principal / Headteacher
+                        </option>
+                        <option value="proprietor">
+                          Proprietor / Director
+                        </option>
+                        <option value="parent">Parent</option>
+                        <option value="partner">Education Stakeholder</option>
+                        <option value="other">Other</option>
+                      </Select>
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label
-                      htmlFor="phone"
-                      className="block text-xs font-bold text-[#151B2E]"
+                      htmlFor="notes"
+                      className="block text-xs font-semibold text-muted-foreground"
                     >
-                      WhatsApp / Phone <span className="text-red-500">*</span>
+                      Special Requests or Questions (Optional)
                     </label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      placeholder="e.g. 0803 123 4567"
-                      className="h-10 border-[#D9DEEC] text-xs font-medium"
+                    <Textarea
+                      id="notes"
+                      name="notes"
+                      rows={2}
+                      placeholder="Dietary requirements, accessibility, or specific questions for panelists..."
+                      className="border-[#D9DEEC] text-xs font-sans resize-none"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="schoolName"
-                      className="block text-xs font-bold text-[#151B2E]"
-                    >
-                      School / Institution
-                    </label>
-                    <Input
-                      id="schoolName"
-                      name="schoolName"
-                      placeholder="e.g. Brookstone School, PH"
-                      className="h-10 border-[#D9DEEC] text-xs font-medium"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="role"
-                      className="block text-xs font-bold text-[#151B2E]"
-                    >
-                      Designation / Role
-                    </label>
-                    <Select
-                      id="role"
-                      name="role"
-                      defaultValue="teacher"
-                      className="h-10 border-[#D9DEEC] text-xs font-medium bg-white"
-                    >
-                      <option value="teacher">Classroom Teacher</option>
-                      <option value="principal">Principal / Headteacher</option>
-                      <option value="proprietor">Proprietor / Director</option>
-                      <option value="parent">Parent</option>
-                      <option value="partner">Education Stakeholder</option>
-                      <option value="other">Other</option>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label
-                    htmlFor="notes"
-                    className="block text-xs font-semibold text-muted-foreground"
-                  >
-                    Special Requests or Questions (Optional)
-                  </label>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    rows={2}
-                    placeholder="Dietary requirements, accessibility, or specific questions for panelists..."
-                    className="border-[#D9DEEC] text-xs font-sans resize-none"
-                  />
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="pt-3 border-t border-[#D9DEEC]">
+              {/* Sticky Submit Footer */}
+              <div className="shrink-0 p-4 sm:p-5 bg-white border-t border-[#D9DEEC] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full h-11 bg-[#184098] hover:bg-[#15327A] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full h-11 sm:h-12 bg-[#184098] hover:bg-[#15327A] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer rounded-lg"
                 >
                   {isPending ? (
                     <>
@@ -547,6 +565,11 @@ export function RegisterEventDialog({
                     <>
                       <CreditCard className="size-4" />
                       <span>Continue to Payment</span>
+                      {totalAmount > 0 && (
+                        <span className="text-xs font-semibold text-white/90">
+                          (₦{totalAmount.toLocaleString()})
+                        </span>
+                      )}
                     </>
                   ) : (
                     <>
@@ -556,8 +579,8 @@ export function RegisterEventDialog({
                   )}
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center mt-2">
-                  Your information is kept secure and will only be used for
-                  event logistics and updates.
+                  🔒 Your information is secure. Registration details are sent
+                  immediately to your email.
                 </p>
               </div>
             </form>
