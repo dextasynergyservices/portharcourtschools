@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   jsonb,
   numeric,
@@ -560,6 +561,35 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
 });
 
+// ==========================================
+// ANALYTICS & VISITOR TRACKING TABLE
+// ==========================================
+
+export const pageViews = pgTable(
+  "page_views",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    path: text("path").notNull(),
+    visitorHash: text("visitor_hash").notNull(),
+    sessionId: text("session_id"),
+    referrer: text("referrer"),
+    referrerDomain: text("referrer_domain"),
+    deviceType: text("device_type").default("desktop").notNull(),
+    browser: text("browser"),
+    os: text("os"),
+    country: text("country"),
+    city: text("city"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("page_views_created_at_idx").on(table.createdAt),
+    index("page_views_path_idx").on(table.path),
+    index("page_views_visitor_hash_idx").on(table.visitorHash),
+  ],
+);
+
 // Infer types
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -580,3 +610,5 @@ export type SiteSetting = typeof siteSettings.$inferSelect;
 export type NewSiteSetting = typeof siteSettings.$inferInsert;
 export type PageContent = typeof pages.$inferSelect;
 export type NewPageContent = typeof pages.$inferInsert;
+export type PageView = typeof pageViews.$inferSelect;
+export type NewPageView = typeof pageViews.$inferInsert;

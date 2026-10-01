@@ -12,7 +12,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { EventMobileActionBar } from "@/components/site/events/event-mobile-action-bar";
 import { EventShareButtons } from "@/components/site/events/event-share-buttons";
 import { PartnerEventDialog } from "@/components/site/events/partner-event-dialog";
 import { RegisterEventDialog } from "@/components/site/events/register-event-dialog";
@@ -542,7 +541,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                     <div className="pt-2">
                       <PartnerEventDialog
                         eventTitle={event.title}
-                        triggerClassName="w-full justify-center text-xs h-9 border-[#D9DEEC] text-[#151B2E]"
+                        triggerClassName="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-md border border-[#FDC82F]/40 bg-[#071E54] hover:bg-[#0c2a78] text-[#FDC82F] font-bold text-sm shadow-xs transition-colors cursor-pointer text-center"
                       />
                     </div>
                   </div>
@@ -620,9 +619,6 @@ export default async function EventDetailPage({ params }: EventPageProps) {
             </div>
           </div>
         </div>
-
-        {/* Mobile Fixed Bottom Action Bar */}
-        <EventMobileActionBar event={event} />
       </div>
     </>
   );
