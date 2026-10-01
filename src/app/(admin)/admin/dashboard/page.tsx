@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AnalyticsDashboardSection } from "@/components/admin/analytics/analytics-dashboard-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -21,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { type AnalyticsSummary, getAnalyticsSummary } from "@/lib/analytics";
 import { auth } from "@/lib/auth";
 import {
   contactSubmissions,
@@ -46,30 +48,61 @@ export default async function AdminDashboardPage() {
   let eventsCount = 0;
   let submissionsCount = 0;
   let recentSubmissions: Array<typeof contactSubmissions.$inferSelect> = [];
+  let analyticsData: AnalyticsSummary = {
+    periodDays: 30,
+    filters: {
+      period: "30d",
+      startDate: "",
+      endDate: "",
+      device: "all",
+      channel: "all",
+      section: "all",
+      periodLabel: "Last 30 Days",
+      isFiltered: false,
+    },
+    totalViews: 0,
+    totalViewsChange: 0,
+    uniqueVisitors: 0,
+    uniqueVisitorsChange: 0,
+    viewsToday: 0,
+    visitorsToday: 0,
+    trend: [],
+    topPages: [],
+    referrers: [],
+    deviceBreakdown: [],
+    topCountries: [],
+  };
 
   try {
-    const [schoolsRes] = await db.select({ value: count() }).from(schools);
-    schoolsCount = schoolsRes?.value ?? 0;
+    const [
+      schoolsRes,
+      postsRes,
+      eventsRes,
+      contactsRes,
+      nominationsRes,
+      recentSubmissionsRes,
+      analyticsRes,
+    ] = await Promise.all([
+      db.select({ value: count() }).from(schools),
+      db.select({ value: count() }).from(posts),
+      db.select({ value: count() }).from(events),
+      db.select({ value: count() }).from(contactSubmissions),
+      db.select({ value: count() }).from(nominations),
+      db
+        .select()
+        .from(contactSubmissions)
+        .orderBy(desc(contactSubmissions.createdAt))
+        .limit(5),
+      getAnalyticsSummary(30),
+    ]);
 
-    const [postsRes] = await db.select({ value: count() }).from(posts);
-    postsCount = postsRes?.value ?? 0;
-
-    const [eventsRes] = await db.select({ value: count() }).from(events);
-    eventsCount = eventsRes?.value ?? 0;
-
-    const [contactsRes] = await db
-      .select({ value: count() })
-      .from(contactSubmissions);
-    const [nominationsRes] = await db
-      .select({ value: count() })
-      .from(nominations);
-    submissionsCount = (contactsRes?.value ?? 0) + (nominationsRes?.value ?? 0);
-
-    recentSubmissions = await db
-      .select()
-      .from(contactSubmissions)
-      .orderBy(desc(contactSubmissions.createdAt))
-      .limit(5);
+    schoolsCount = schoolsRes[0]?.value ?? 0;
+    postsCount = postsRes[0]?.value ?? 0;
+    eventsCount = eventsRes[0]?.value ?? 0;
+    submissionsCount =
+      (contactsRes[0]?.value ?? 0) + (nominationsRes[0]?.value ?? 0);
+    recentSubmissions = recentSubmissionsRes;
+    analyticsData = analyticsRes;
   } catch (error) {
     console.error("Dashboard stats query error:", error);
   }
@@ -168,46 +201,62 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Responsive Stat Cards: 1-col mobile, 2-col tablet, 4-col desktop */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {statCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card
-                key={stat.title}
-                className="border-[#D9DEEC] bg-white hover:border-[#184098]/40 hover:shadow-md transition-all"
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    {stat.badge}
-                  </span>
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-[#EEF2FA] text-[#184098]">
-                    <Icon className="size-4" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-heading text-3xl font-black text-[#151B2E]">
-                    {stat.count}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">
-                    {stat.title}
-                  </p>
-                  <div className="mt-3 pt-3 border-t border-[#D9DEEC]/60 flex items-center justify-between">
-                    <span className="text-[11px] text-muted-foreground truncate">
-                      {stat.description}
+        {/* Real-time Website Traffic & Visitor Analytics */}
+        <AnalyticsDashboardSection initialData={analyticsData} />
+
+        {/* Platform Content & Directory Management Overview */}
+        <div className="pt-4 space-y-3">
+          <div>
+            <h2 className="font-heading text-lg font-bold text-[#151B2E]">
+              Platform &amp; Directory Overview
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Direct access to registered schools, published editorial posts,
+              upcoming events, and lead capture.
+            </p>
+          </div>
+
+          {/* Responsive Stat Cards: 1-col mobile, 2-col tablet, 4-col desktop */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {statCards.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card
+                  key={stat.title}
+                  className="border-[#D9DEEC] bg-white hover:border-[#184098]/40 hover:shadow-md transition-all"
+                >
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                      {stat.badge}
                     </span>
-                    <Link
-                      href={stat.href}
-                      className="text-xs font-bold text-[#184098] hover:underline flex items-center shrink-0 ml-1"
-                    >
-                      <span>View</span>
-                      <ArrowUpRight className="size-3.5 ml-0.5" />
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-[#EEF2FA] text-[#184098]">
+                      <Icon className="size-4" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="font-heading text-3xl font-black text-[#151B2E]">
+                      {stat.count}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">
+                      {stat.title}
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-[#D9DEEC]/60 flex items-center justify-between">
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        {stat.description}
+                      </span>
+                      <Link
+                        href={stat.href}
+                        className="text-xs font-bold text-[#184098] hover:underline flex items-center shrink-0 ml-1"
+                      >
+                        <span>View</span>
+                        <ArrowUpRight className="size-3.5 ml-0.5" />
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Recent Submissions Section */}
