@@ -1,13 +1,10 @@
 "use client";
 
 import { ChevronDown, Loader2 } from "lucide-react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
@@ -99,15 +96,20 @@ export function BlogPostsFeed({
         </span>
       </div>
 
-      <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
-          <StaggerItem key={post.id}>
+          <motion.div
+            key={post.id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
+          >
             <article className="group flex flex-col bg-white border border-[#D9DEEC] rounded-[2px] overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-[#184098]/40 transition-all duration-300 h-full">
               {/* 4px Category Top Accent */}
               <div className="h-1 w-full bg-[#184098]" />
 
               {/* Thumbnail image */}
-              {post.coverImage && (
+              {post.coverImage ? (
                 <div className="relative h-44 w-full bg-[#EEF2FA] overflow-hidden">
                   <Image
                     src={normalizeImageUrl(post.coverImage)}
@@ -118,6 +120,12 @@ export function BlogPostsFeed({
                     className="object-cover group-hover:scale-103 transition-transform duration-300"
                     unoptimized={isExternalImage(post.coverImage)}
                   />
+                </div>
+              ) : (
+                <div className="relative h-44 w-full bg-[#EEF2FA] flex items-center justify-center border-b border-[#D9DEEC] p-4 text-center">
+                  <span className="font-heading text-xs font-bold uppercase tracking-wider text-[#184098]/60">
+                    PortHarcourtSchools Editorial
+                  </span>
                 </div>
               )}
 
@@ -163,9 +171,9 @@ export function BlogPostsFeed({
                 </div>
               </div>
             </article>
-          </StaggerItem>
+          </motion.div>
         ))}
-      </StaggerContainer>
+      </div>
 
       {/* Load More Pagination Section */}
       <div className="pt-6 pb-2 text-center">
