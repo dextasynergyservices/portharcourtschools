@@ -92,7 +92,7 @@ export default async function HomePage() {
           where: eq(posts.status, "published"),
           with: {
             category: true,
-            author: true,
+            author: { columns: { name: true } },
           },
           orderBy: [
             asc(posts.sortOrder),

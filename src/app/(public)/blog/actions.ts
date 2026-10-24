@@ -1,6 +1,7 @@
 "use server";
 
 import { and, asc, desc, eq } from "drizzle-orm";
+import { getOrSetCache } from "@/lib/cache";
 import { db, posts } from "@/lib/db";
 
 export type BlogCardPost = {
@@ -27,6 +28,22 @@ export async function fetchMoreBlogPostsAction({
   offset: number;
   limit?: number;
 }): Promise<BlogCardPost[]> {
+  const safeOffset = Math.max(0, Math.floor(offset) || 0);
+  const safeLimit = Math.min(24, Math.max(1, Math.floor(limit) || 6));
+
+  return getOrSetCache(
+    `blog:more:${categoryId || "all"}:${safeOffset}:${safeLimit}`,
+    ["posts"],
+    () => queryBlogPosts(categoryId, safeOffset, safeLimit),
+    600,
+  );
+}
+
+async function queryBlogPosts(
+  categoryId: string | undefined,
+  offset: number,
+  limit: number,
+): Promise<BlogCardPost[]> {
   const whereConditions = [eq(posts.status, "published")];
   if (categoryId) {
     whereConditions.push(eq(posts.categoryId, categoryId));
@@ -36,7 +53,6 @@ export async function fetchMoreBlogPostsAction({
     where: and(...whereConditions),
     with: {
       category: true,
-      author: true,
     },
     orderBy: [
       asc(posts.sortOrder),

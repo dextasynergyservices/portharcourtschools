@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Server actions read request headers for IP rate limiting
+vi.mock("next/headers", () => ({
+  headers: vi.fn(
+    async () => new Headers({ "x-forwarded-for": "203.0.113.10" }),
+  ),
+}));
+
 // Mock external services and database
 vi.mock("@/lib/turnstile", () => ({
   verifyTurnstileToken: vi.fn(),

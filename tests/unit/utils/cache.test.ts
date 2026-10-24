@@ -1,6 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { getOrSetCache, invalidateCache } from "@/lib/cache";
 
+// The Next.js data cache needs a running server; pass straight through to the fetcher
+vi.mock("next/cache", () => ({
+  unstable_cache:
+    <T>(fn: () => Promise<T>) =>
+    () =>
+      fn(),
+  revalidateTag: vi.fn(),
+}));
+
 describe("Two-Tier Cache Utility", () => {
   it("fetches and caches result on initial cache miss", async () => {
     const fetcher = vi.fn().mockResolvedValue({ id: 1, name: "Test School" });
