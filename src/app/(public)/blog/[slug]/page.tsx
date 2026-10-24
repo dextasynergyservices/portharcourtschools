@@ -24,6 +24,11 @@ interface ArticlePageProps {
   }>;
 }
 
+// Cached posts come back from Redis with dates serialized as strings
+function toIsoDate(value: Date | string | null | undefined) {
+  return value ? new Date(value).toISOString() : undefined;
+}
+
 function calculateReadingTime(html: string): number {
   const text = html.replace(/<[^>]*>/g, "");
   const words = text.trim().split(/\s+/).length;
@@ -39,7 +44,7 @@ const getPostBySlug = cache(async (slug: string) => {
         where: eq(posts.slug, slug),
         with: {
           category: true,
-          author: true,
+          author: { columns: { name: true } },
         },
         limit: 1,
       });
@@ -103,8 +108,8 @@ export async function generateMetadata({
       title,
       description,
       type: "article",
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt?.toISOString(),
+      publishedTime: toIsoDate(post.publishedAt),
+      modifiedTime: toIsoDate(post.updatedAt),
       authors: [post.author?.name || "PortHarcourtSchools Editorial Staff"],
       images: [
         {
@@ -146,19 +151,25 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
   const articleUrl = `${siteUrl}/blog/${post.slug}`;
 
   // Fetch related articles from same category or newest
-  const relatedPosts = await db.query.posts.findMany({
-    where: and(
-      eq(posts.status, "published"),
-      ne(posts.id, post.id),
-      post.categoryId ? eq(posts.categoryId, post.categoryId) : undefined,
-    ),
-    with: {
-      category: true,
-      author: true,
-    },
-    orderBy: [asc(posts.sortOrder), desc(posts.publishedAt)],
-    limit: 3,
-  });
+  const relatedPosts = await getOrSetCache(
+    `post_related:${post.id}`,
+    ["posts", `post:${slug}`],
+    () =>
+      db.query.posts.findMany({
+        where: and(
+          eq(posts.status, "published"),
+          ne(posts.id, post.id),
+          post.categoryId ? eq(posts.categoryId, post.categoryId) : undefined,
+        ),
+        with: {
+          category: true,
+          author: { columns: { name: true } },
+        },
+        orderBy: [asc(posts.sortOrder), desc(posts.publishedAt)],
+        limit: 3,
+      }),
+    600,
+  );
 
   // JSON-LD Structured Data
   const jsonLd = {
@@ -167,8 +178,8 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
     headline: post.title,
     description: post.excerpt,
     image: post.coverImage ? [`${siteUrl}${post.coverImage}`] : [],
-    datePublished: post.publishedAt?.toISOString(),
-    dateModified: post.updatedAt?.toISOString(),
+    datePublished: toIsoDate(post.publishedAt),
+    dateModified: toIsoDate(post.updatedAt),
     author: {
       "@type": "Person",
       name: post.author?.name || "Schools Voice Editorial Staff",

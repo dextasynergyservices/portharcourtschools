@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { NextRequest } from "next/server";
-import { db, pageViews } from "@/lib/db";
+import { after, type NextRequest } from "next/server";
+import { flushPageViews, recordPageView } from "@/lib/analytics-buffer";
 
 // Patterns to ignore
 const BOT_REGEX =
@@ -181,8 +181,8 @@ export async function POST(req: NextRequest) {
       null;
     const city = req.headers.get("cf-ipcity") || null;
 
-    // Asynchronously insert page view
-    await db.insert(pageViews).values({
+    // Buffered in memory and flushed to Postgres in batches
+    const shouldFlush = recordPageView({
       path,
       visitorHash,
       sessionId: body.sessionId ? String(body.sessionId).slice(0, 64) : null,
@@ -194,6 +194,14 @@ export async function POST(req: NextRequest) {
       country,
       city,
     });
+
+    if (shouldFlush) {
+      after(() =>
+        flushPageViews().catch((error) => {
+          console.error("[Analytics Flush Error]:", error);
+        }),
+      );
+    }
 
     return new Response(null, { status: 204 });
   } catch (error) {

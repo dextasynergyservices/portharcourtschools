@@ -19,6 +19,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import {
   formatSchoolFee,
   SchoolCard,
@@ -26,7 +27,28 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getOrSetCache } from "@/lib/cache";
 import { db, schools } from "@/lib/db";
+import { canOptimizeImage } from "@/lib/image-hosts";
+
+export const revalidate = 600;
+
+// Shared by generateMetadata and the page so each visit costs at most one lookup
+const getSchoolBySlug = cache(async (slug: string) => {
+  return getOrSetCache(
+    `school:${slug}`,
+    ["schools", `school:${slug}`],
+    async () => {
+      const school = await db.query.schools.findFirst({
+        // Draft and archived schools are not publicly viewable
+        where: and(eq(schools.slug, slug), eq(schools.status, "published")),
+        with: { area: true },
+      });
+      return school || null;
+    },
+    600,
+  );
+});
 
 interface SchoolDetailPageProps {
   params: Promise<{
@@ -38,20 +60,15 @@ export async function generateMetadata({
   params,
 }: SchoolDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const school = await db.query.schools.findMany({
-    where: eq(schools.slug, slug),
-    with: { area: true },
-    limit: 1,
-  });
+  const s = await getSchoolBySlug(slug);
 
-  if (!school || school.length === 0) {
+  if (!s) {
     return {
       title:
         "School Not Found | Schools Voice (Formerly Port Harcourt Schools)",
     };
   }
 
-  const s = school[0];
   const areaName = s.area?.name || "Port Harcourt";
   const levelsStr = (s.levels || []).join(", ");
 
@@ -106,50 +123,49 @@ export default async function SchoolDetailPage({
 }: SchoolDetailPageProps) {
   const { slug } = await params;
 
-  const foundSchools = await db.query.schools.findMany({
-    where: eq(schools.slug, slug),
-    with: {
-      area: true,
-    },
-    limit: 1,
-  });
+  const school = await getSchoolBySlug(slug);
 
-  if (!foundSchools || foundSchools.length === 0) {
+  if (!school) {
     notFound();
   }
 
-  const school = foundSchools[0];
   const areaName = school.area?.name || school.lga || "Port Harcourt";
   const feeString = formatSchoolFee(school);
   const periodLabel = school.feePeriod === "per_session" ? "session" : "term";
 
-  // Query nearby / related schools
-  const nearbySchools = await db.query.schools.findMany({
-    where: and(
-      eq(schools.status, "published"),
-      ne(schools.id, school.id),
-      school.areaId ? eq(schools.areaId, school.areaId) : undefined,
-    ),
-    with: {
-      area: true,
-    },
-    limit: 3,
-  });
+  const relatedSchools = await getOrSetCache(
+    `school_related:${school.id}`,
+    ["schools", `school:${slug}`],
+    async () => {
+      // Query nearby / related schools
+      const nearbySchools = await db.query.schools.findMany({
+        where: and(
+          eq(schools.status, "published"),
+          ne(schools.id, school.id),
+          school.areaId ? eq(schools.areaId, school.areaId) : undefined,
+        ),
+        with: {
+          area: true,
+        },
+        limit: 3,
+      });
 
-  // Fallback related if none in same area
-  const relatedSchools =
-    nearbySchools.length > 0
-      ? nearbySchools
-      : await db.query.schools.findMany({
-          where: and(
-            eq(schools.status, "published"),
-            ne(schools.id, school.id),
-          ),
-          with: {
-            area: true,
-          },
-          limit: 3,
-        });
+      // Fallback related if none in same area
+      return nearbySchools.length > 0
+        ? nearbySchools
+        : db.query.schools.findMany({
+            where: and(
+              eq(schools.status, "published"),
+              ne(schools.id, school.id),
+            ),
+            with: {
+              area: true,
+            },
+            limit: 3,
+          });
+    },
+    600,
+  );
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${school.name} ${school.address || ""} ${areaName} Port Harcourt Nigeria`,
@@ -215,6 +231,7 @@ export default async function SchoolDetailPage({
             {school.coverImage ? (
               <Image
                 src={school.coverImage}
+                unoptimized={!canOptimizeImage(school.coverImage)}
                 alt={`${school.name} Campus`}
                 fill
                 priority
@@ -257,6 +274,7 @@ export default async function SchoolDetailPage({
                 {school.logo ? (
                   <Image
                     src={school.logo}
+                    unoptimized={!canOptimizeImage(school.logo)}
                     alt={`${school.name} Logo`}
                     width={96}
                     height={96}
@@ -491,6 +509,7 @@ export default async function SchoolDetailPage({
                     >
                       <Image
                         src={imgUrl}
+                        unoptimized={!canOptimizeImage(imgUrl)}
                         alt={`${school.name} Photo ${idx + 1}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"

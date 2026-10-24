@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { canOptimizeImage } from "@/lib/image-hosts";
 import { PartnerEventDialog } from "./partner-event-dialog";
 import { RegisterEventDialog } from "./register-event-dialog";
 
@@ -256,6 +257,7 @@ export function FlagshipEventShowcase({ events }: FlagshipEventShowcaseProps) {
                 <div className="relative aspect-[16/11] w-full">
                   <Image
                     src={coverSrc}
+                    unoptimized={!canOptimizeImage(coverSrc)}
                     alt={activeEvent.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 42vw"
