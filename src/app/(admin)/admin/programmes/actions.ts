@@ -4,6 +4,7 @@ import { and, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { invalidateCache } from "@/lib/cache";
 import { db, programmes } from "@/lib/db";
 
 const programmeSchema = z.object({
@@ -118,6 +119,7 @@ export async function createProgrammeAction(
       })
       .returning({ id: programmes.id, slug: programmes.slug });
 
+    await invalidateCache(["programmes"]);
     revalidatePath("/events");
     revalidatePath("/admin/programmes");
     revalidatePath("/");
@@ -217,6 +219,7 @@ export async function updateProgrammeAction(
       })
       .where(eq(programmes.id, id));
 
+    await invalidateCache(["programmes"]);
     revalidatePath("/events");
     revalidatePath("/admin/programmes");
     revalidatePath("/");
@@ -247,6 +250,7 @@ export async function deleteProgrammeAction(
   try {
     await db.delete(programmes).where(eq(programmes.id, id));
 
+    await invalidateCache(["programmes"]);
     revalidatePath("/events");
     revalidatePath("/admin/programmes");
     revalidatePath("/");
@@ -291,6 +295,7 @@ export async function bulkUpdateProgrammesStatusAction(
       })
       .where(inArray(programmes.id, ids));
 
+    await invalidateCache(["programmes"]);
     revalidatePath("/events");
     revalidatePath("/admin/programmes");
     revalidatePath("/");
@@ -328,6 +333,7 @@ export async function bulkDeleteProgrammesAction(
   try {
     await db.delete(programmes).where(inArray(programmes.id, ids));
 
+    await invalidateCache(["programmes"]);
     revalidatePath("/events");
     revalidatePath("/admin/programmes");
     revalidatePath("/");

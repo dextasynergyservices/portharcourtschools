@@ -44,16 +44,25 @@ const getEventBySlug = cache(async (slug: string) => {
 });
 
 export async function generateStaticParams() {
-  const allEvents = await db.query.events.findMany({
-    where: eq(events.status, "published"),
-    columns: {
-      slug: true,
-    },
-  });
+  // Don't fail the build if the database is unreachable; pages render on first visit instead
+  try {
+    const allEvents = await db.query.events.findMany({
+      where: eq(events.status, "published"),
+      columns: {
+        slug: true,
+      },
+    });
 
-  return allEvents.map((evt) => ({
-    slug: evt.slug,
-  }));
+    return allEvents.map((evt) => ({
+      slug: evt.slug,
+    }));
+  } catch (error) {
+    console.warn(
+      "[events] Skipping static params, database unavailable:",
+      error,
+    );
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -106,11 +115,17 @@ export default async function EventDetailPage({ params }: EventPageProps) {
   }
 
   // Fetch other upcoming events
-  const otherEvents = await db.query.events.findMany({
-    where: and(ne(events.id, event.id), eq(events.status, "published")),
-    orderBy: [desc(events.startDate)],
-    limit: 2,
-  });
+  const otherEvents = await getOrSetCache(
+    `event_others:${event.id}`,
+    ["events", `event:${slug}`],
+    () =>
+      db.query.events.findMany({
+        where: and(ne(events.id, event.id), eq(events.status, "published")),
+        orderBy: [desc(events.startDate)],
+        limit: 2,
+      }),
+    600,
+  );
 
   // Date formatting
   const startDateObj = new Date(event.startDate);
