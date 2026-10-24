@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { db, schools } from "@/lib/db";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 interface SchoolDetailPageProps {
   params: Promise<{
@@ -215,6 +216,7 @@ export default async function SchoolDetailPage({
             {school.coverImage ? (
               <Image
                 src={school.coverImage}
+                unoptimized={!canOptimizeImage(school.coverImage)}
                 alt={`${school.name} Campus`}
                 fill
                 priority
@@ -257,6 +259,7 @@ export default async function SchoolDetailPage({
                 {school.logo ? (
                   <Image
                     src={school.logo}
+                    unoptimized={!canOptimizeImage(school.logo)}
                     alt={`${school.name} Logo`}
                     width={96}
                     height={96}
@@ -491,6 +494,7 @@ export default async function SchoolDetailPage({
                     >
                       <Image
                         src={imgUrl}
+                        unoptimized={!canOptimizeImage(imgUrl)}
                         alt={`${school.name} Photo ${idx + 1}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"

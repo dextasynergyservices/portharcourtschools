@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 export interface SchoolCardData {
   id: string;
@@ -108,6 +109,7 @@ export function SchoolCard({ school }: { school: SchoolCardData }) {
           {school.coverImage ? (
             <Image
               src={school.coverImage}
+              unoptimized={!canOptimizeImage(school.coverImage)}
               alt={school.name}
               fill
               loading="lazy"
@@ -149,6 +151,7 @@ export function SchoolCard({ school }: { school: SchoolCardData }) {
             {school.logo ? (
               <Image
                 src={school.logo}
+                unoptimized={!canOptimizeImage(school.logo)}
                 alt={`${school.name} logo`}
                 width={56}
                 height={56}

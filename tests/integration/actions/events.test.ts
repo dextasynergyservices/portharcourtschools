@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Server actions read request headers for IP rate limiting
+vi.mock("next/headers", () => ({
+  headers: vi.fn(
+    async () => new Headers({ "x-forwarded-for": "203.0.113.10" }),
+  ),
+}));
+
 const { mockSelectLimit, mockInsertReturning } = vi.hoisted(() => {
   const mockInsertReturning = vi.fn();
   const mockInsertValues = vi.fn(() => ({ returning: mockInsertReturning }));

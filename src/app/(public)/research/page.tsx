@@ -7,6 +7,7 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/site/motion-wrapper";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 export const revalidate = 900;
 
@@ -202,6 +203,7 @@ export default async function ResearchAndFocusAreasPage() {
                   <div className="relative h-48 w-full overflow-hidden bg-[#EEF2FA]">
                     <Image
                       src={track.bgImage}
+                      unoptimized={!canOptimizeImage(track.bgImage)}
                       alt={track.title}
                       fill
                       loading="lazy"

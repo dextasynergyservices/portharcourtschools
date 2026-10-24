@@ -19,6 +19,7 @@ import { FadeIn } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { getOrSetCache } from "@/lib/cache";
 import { db, events } from "@/lib/db";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 export const revalidate = 600;
 
@@ -294,6 +295,7 @@ export default async function EventDetailPage({ params }: EventPageProps) {
                 <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-[#E4E0D5] bg-white shadow-sm">
                   <Image
                     src={event.coverImage}
+                    unoptimized={!canOptimizeImage(event.coverImage)}
                     alt={event.title}
                     fill
                     sizes="(max-width: 1024px) 100vw, 800px"

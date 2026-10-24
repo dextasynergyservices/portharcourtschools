@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 function ArrowDiagonal({
   className = "size-3.5 ml-1",
@@ -280,6 +281,7 @@ export function HeroSection({ data }: { data?: HeroSectionData }) {
               >
                 <Image
                   src={coverImage}
+                  unoptimized={!canOptimizeImage(coverImage)}
                   alt={coverImageAlt}
                   width={800}
                   height={600}

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FadeIn } from "@/components/site/motion-wrapper";
+import { getOrSetCache } from "@/lib/cache";
 import { categories, db, posts } from "@/lib/db";
 import { isExternalImage, normalizeImageUrl } from "@/lib/utils";
 import { BlogPostsFeed } from "./blog-posts-feed";
@@ -45,6 +46,60 @@ function ArrowDiagonal({
   );
 }
 
+const INITIAL_BATCH_SIZE = 7; // 1 featured + 6 initial grid cards
+
+async function getBlogListing(categorySlug?: string) {
+  return getOrSetCache(
+    `blog:listing:${categorySlug || "all"}`,
+    ["posts", "categories"],
+    async () => {
+      const allCategories = await db
+        .select({
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        })
+        .from(categories)
+        .orderBy(categories.name);
+
+      const selectedCategoryId = categorySlug
+        ? allCategories.find((c) => c.slug === categorySlug)?.id
+        : undefined;
+
+      const whereConditions = [eq(posts.status, "published")];
+      if (selectedCategoryId) {
+        whereConditions.push(eq(posts.categoryId, selectedCategoryId));
+      }
+
+      const [countResult] = await db
+        .select({ value: count() })
+        .from(posts)
+        .where(and(...whereConditions));
+
+      const publishedPosts = await db.query.posts.findMany({
+        where: and(...whereConditions),
+        with: {
+          category: true,
+          author: { columns: { name: true } },
+        },
+        orderBy: [
+          asc(posts.sortOrder),
+          desc(posts.publishedAt),
+          desc(posts.createdAt),
+        ],
+        limit: INITIAL_BATCH_SIZE,
+      });
+
+      return {
+        allCategories,
+        totalPublishedCount: countResult?.value || 0,
+        publishedPosts,
+      };
+    },
+    600,
+  );
+}
+
 interface BlogPageProps {
   searchParams: Promise<{
     category?: string;
@@ -55,54 +110,15 @@ interface BlogPageProps {
 export default async function BlogListingPage({ searchParams }: BlogPageProps) {
   const { category: activeCategorySlug } = await searchParams;
 
-  // 1. Fetch all categories
-  const allCategories = await db
-    .select({
-      id: categories.id,
-      name: categories.name,
-      slug: categories.slug,
-    })
-    .from(categories)
-    .orderBy(categories.name);
+  // searchParams makes this page dynamic, so queries are cached explicitly
+  const { allCategories, totalPublishedCount, publishedPosts } =
+    await getBlogListing(activeCategorySlug);
 
-  // 2. Resolve selected category ID
-  let selectedCategoryId: string | undefined;
-  let activeCategoryName: string | undefined;
-
-  if (activeCategorySlug) {
-    const matched = allCategories.find((c) => c.slug === activeCategorySlug);
-    if (matched) {
-      selectedCategoryId = matched.id;
-      activeCategoryName = matched.name;
-    }
-  }
-
-  // 3. Query published posts with total count
-  const whereConditions = [eq(posts.status, "published")];
-  if (selectedCategoryId) {
-    whereConditions.push(eq(posts.categoryId, selectedCategoryId));
-  }
-
-  const [countResult] = await db
-    .select({ value: count() })
-    .from(posts)
-    .where(and(...whereConditions));
-  const totalPublishedCount = countResult?.value || 0;
-
-  const INITIAL_BATCH_SIZE = 7; // 1 featured + 6 initial grid cards
-  const publishedPosts = await db.query.posts.findMany({
-    where: and(...whereConditions),
-    with: {
-      category: true,
-      author: true,
-    },
-    orderBy: [
-      asc(posts.sortOrder),
-      desc(posts.publishedAt),
-      desc(posts.createdAt),
-    ],
-    limit: INITIAL_BATCH_SIZE,
-  });
+  const activeCategory = activeCategorySlug
+    ? allCategories.find((c) => c.slug === activeCategorySlug)
+    : undefined;
+  const selectedCategoryId = activeCategory?.id;
+  const activeCategoryName = activeCategory?.name;
 
   const featuredPost = publishedPosts[0];
   const remainingPosts = publishedPosts.slice(1).map((p) => ({

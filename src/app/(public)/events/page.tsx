@@ -13,6 +13,7 @@ import {
 } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
 import { db, events, programmes } from "@/lib/db";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 export const revalidate = 180;
 
@@ -204,6 +205,7 @@ export default async function EventsAndProgrammesPage({
                   <div className="relative h-48 w-full bg-[#EEF2FA] overflow-hidden">
                     <Image
                       src={ev.coverImage || "/images/ph_hero_classroom.jpg"}
+                      unoptimized={!canOptimizeImage(ev.coverImage)}
                       alt={ev.title}
                       fill
                       loading="lazy"
