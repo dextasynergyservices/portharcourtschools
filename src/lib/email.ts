@@ -1,16 +1,72 @@
+import type { ReactElement } from "react";
 import { Resend } from "resend";
+import { ContactAcknowledgementEmail } from "@/emails/contact-acknowledgement-email";
 import { ContactNotificationEmail } from "@/emails/contact-notification-email";
 import { EventPaymentPendingEmail } from "@/emails/event-payment-pending-email";
 import { EventRegistrationConfirmedEmail } from "@/emails/event-registration-confirmed-email";
+import { UserInviteEmail } from "@/emails/user-invite-email";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-const DEFAULT_ADMIN_EMAIL =
-  process.env.ADMIN_NOTIFICATION_EMAIL || "hello@portharcourtschools.ng";
+// The sender must be on a domain verified in Resend (schoolsvoice.com),
+// otherwise Resend rejects every send with a 403.
 const SENDER_EMAIL =
-  process.env.RESEND_FROM_EMAIL ||
-  "Schools Voice <notifications@portharcourtschools.ng>";
+  process.env.EMAIL_FROM || "Schools Voice <hello@schoolsvoice.com>";
+const DEFAULT_ADMIN_EMAIL =
+  process.env.ADMIN_NOTIFICATION_EMAIL || "hello@schoolsvoice.com";
+
+type EmailResult = {
+  success: boolean;
+  id?: string;
+  error?: string;
+  isSimulated?: boolean;
+};
+
+/**
+ * Sends a single email through Resend. Never throws: failures are logged and
+ * returned so callers can decide whether they matter.
+ * If RESEND_API_KEY is not configured, the send is skipped and reported as simulated.
+ */
+async function deliver(
+  label: string,
+  message: {
+    to: string;
+    subject: string;
+    replyTo?: string;
+    react: ReactElement;
+  },
+): Promise<EmailResult> {
+  if (!resend) {
+    console.warn(
+      `RESEND_API_KEY not configured. Skipped "${label}" email to ${message.to}.`,
+    );
+    return { success: true, isSimulated: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: SENDER_EMAIL,
+      to: [message.to],
+      replyTo: message.replyTo,
+      subject: message.subject,
+      react: message.react,
+    });
+
+    if (error) {
+      console.error(
+        `Resend rejected "${label}" email to ${message.to}:`,
+        error,
+      );
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error(`Failed to send "${label}" email to ${message.to}:`, err);
+    return { success: false, error: "Email delivery failed" };
+  }
+}
 
 interface SendContactNotificationParams {
   name: string;
@@ -22,47 +78,55 @@ interface SendContactNotificationParams {
 }
 
 /**
- * Dispatches an automated email notification to admin inbox when a contact or partnership lead is captured.
- * If RESEND_API_KEY is not configured, logs to console in dev mode without throwing errors.
+ * Notifies the admin inbox when a contact or partnership lead is captured.
+ * Reply-To is the submitter, so admins can answer straight from their inbox.
  */
-export async function sendContactNotificationEmail(
+export function sendContactNotificationEmail(
   params: SendContactNotificationParams,
-): Promise<{ success: boolean; id?: string; error?: string }> {
-  if (!resend) {
-    console.warn(
-      "RESEND_API_KEY not configured. Email dispatch skipped for submission from:",
-      params.email,
-    );
-    return { success: true };
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
-      to: [DEFAULT_ADMIN_EMAIL],
-      replyTo: params.email,
-      subject: `[${params.personaType.toUpperCase()}] New inquiry from ${params.name}: ${params.subject || "Website Lead"}`,
-      react: ContactNotificationEmail({
-        name: params.name,
-        email: params.email,
-        phone: params.phone,
-        personaType: params.personaType,
-        subject: params.subject,
-        message: params.message,
-        submittedAt: new Date().toLocaleString("en-GB"),
+): Promise<EmailResult> {
+  return deliver("contact notification", {
+    to: DEFAULT_ADMIN_EMAIL,
+    replyTo: params.email,
+    subject: `New ${params.personaType.replace("_", " ")} inquiry from ${params.name}: ${params.subject || "Website lead"}`,
+    react: ContactNotificationEmail({
+      name: params.name,
+      email: params.email,
+      phone: params.phone,
+      personaType: params.personaType,
+      subject: params.subject,
+      message: params.message,
+      submittedAt: new Date().toLocaleString("en-GB", {
+        timeZone: "Africa/Lagos",
+        dateStyle: "medium",
+        timeStyle: "short",
       }),
-    });
+    }),
+  });
+}
 
-    if (error) {
-      console.error("Resend error sending contact notification:", error);
-      return { success: false, error: error.message };
-    }
+interface SendContactAcknowledgementParams {
+  name: string;
+  email: string;
+  subject?: string | null;
+  message: string;
+}
 
-    return { success: true, id: data?.id };
-  } catch (err) {
-    console.error("Failed to send contact notification email:", err);
-    return { success: false, error: "Email delivery failed" };
-  }
+/**
+ * Sends the submitter a receipt confirming their message was received.
+ */
+export function sendContactAcknowledgementEmail(
+  params: SendContactAcknowledgementParams,
+): Promise<EmailResult> {
+  return deliver("contact acknowledgement", {
+    to: params.email,
+    replyTo: DEFAULT_ADMIN_EMAIL,
+    subject: "We've received your message — Schools Voice",
+    react: ContactAcknowledgementEmail({
+      name: params.name,
+      subject: params.subject,
+      message: params.message,
+    }),
+  });
 }
 
 interface SendEventRegistrationConfirmedParams {
@@ -80,48 +144,28 @@ interface SendEventRegistrationConfirmedParams {
 }
 
 /**
- * Dispatches a ticket confirmation email with Google Calendar invite link to an attendee.
+ * Sends a ticket confirmation email with Google Calendar invite link to an attendee.
  */
-export async function sendEventRegistrationConfirmedEmail(
+export function sendEventRegistrationConfirmedEmail(
   params: SendEventRegistrationConfirmedParams,
-): Promise<{ success: boolean; id?: string; error?: string }> {
-  if (!resend) {
-    console.warn(
-      `[DEV] RESEND_API_KEY not configured. Simulated confirmed event registration email sent to: ${params.email} for ${params.eventTitle} (${params.ticketTierName || "Standard Tier"})`,
-    );
-    return { success: true };
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
-      to: [params.email],
-      replyTo: DEFAULT_ADMIN_EMAIL,
-      subject: `Your Ticket is Confirmed: ${params.eventTitle}`,
-      react: EventRegistrationConfirmedEmail({
-        attendeeName: params.attendeeName,
-        eventTitle: params.eventTitle,
-        eventDateStr: params.eventDateStr,
-        eventVenue: params.eventVenue,
-        ticketQuantity: params.ticketQuantity,
-        ticketTierName: params.ticketTierName,
-        isPaid: params.isPaid,
-        totalAmount: params.totalAmount,
-        registrationId: params.registrationId,
-        calendarUrl: params.calendarUrl,
-      }),
-    });
-
-    if (error) {
-      console.error("Resend error sending event confirmation email:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, id: data?.id };
-  } catch (err) {
-    console.error("Failed to send event confirmation email:", err);
-    return { success: false, error: "Email delivery failed" };
-  }
+): Promise<EmailResult> {
+  return deliver("event confirmation", {
+    to: params.email,
+    replyTo: DEFAULT_ADMIN_EMAIL,
+    subject: `You're registered: ${params.eventTitle}`,
+    react: EventRegistrationConfirmedEmail({
+      attendeeName: params.attendeeName,
+      eventTitle: params.eventTitle,
+      eventDateStr: params.eventDateStr,
+      eventVenue: params.eventVenue,
+      ticketQuantity: params.ticketQuantity,
+      ticketTierName: params.ticketTierName,
+      isPaid: params.isPaid,
+      totalAmount: params.totalAmount,
+      registrationId: params.registrationId,
+      calendarUrl: params.calendarUrl,
+    }),
+  });
 }
 
 interface SendEventPaymentPendingParams {
@@ -138,47 +182,27 @@ interface SendEventPaymentPendingParams {
 }
 
 /**
- * Dispatches an email with payment link for pending event registrations.
+ * Sends a payment link for pending (paid) event registrations.
  */
-export async function sendEventPaymentPendingEmail(
+export function sendEventPaymentPendingEmail(
   params: SendEventPaymentPendingParams,
-): Promise<{ success: boolean; id?: string; error?: string }> {
-  if (!resend) {
-    console.warn(
-      `[DEV] RESEND_API_KEY not configured. Simulated pending payment email sent to: ${params.email} (₦${params.totalAmount} - ${params.ticketTierName || "Standard Tier"}) for ${params.eventTitle}`,
-    );
-    return { success: true };
-  }
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
-      to: [params.email],
-      replyTo: DEFAULT_ADMIN_EMAIL,
-      subject: `Complete Your Payment: ${params.eventTitle}`,
-      react: EventPaymentPendingEmail({
-        attendeeName: params.attendeeName,
-        eventTitle: params.eventTitle,
-        eventDateStr: params.eventDateStr,
-        eventVenue: params.eventVenue,
-        ticketQuantity: params.ticketQuantity,
-        ticketTierName: params.ticketTierName,
-        totalAmount: params.totalAmount,
-        paymentLink: params.paymentLink,
-        registrationId: params.registrationId,
-      }),
-    });
-
-    if (error) {
-      console.error("Resend error sending event pending payment email:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, id: data?.id };
-  } catch (err) {
-    console.error("Failed to send event pending payment email:", err);
-    return { success: false, error: "Email delivery failed" };
-  }
+): Promise<EmailResult> {
+  return deliver("event payment pending", {
+    to: params.email,
+    replyTo: DEFAULT_ADMIN_EMAIL,
+    subject: `Complete your payment: ${params.eventTitle}`,
+    react: EventPaymentPendingEmail({
+      attendeeName: params.attendeeName,
+      eventTitle: params.eventTitle,
+      eventDateStr: params.eventDateStr,
+      eventVenue: params.eventVenue,
+      ticketQuantity: params.ticketQuantity,
+      ticketTierName: params.ticketTierName,
+      totalAmount: params.totalAmount,
+      paymentLink: params.paymentLink,
+      registrationId: params.registrationId,
+    }),
+  });
 }
 
 interface SendUserInviteParams {
@@ -191,50 +215,22 @@ interface SendUserInviteParams {
 }
 
 /**
- * Dispatches an invite email with secure password creation link to a new team member.
- * If RESEND_API_KEY is not configured, gracefully logs without throwing errors.
+ * Sends a team invitation with a secure password-creation link.
  */
-export async function sendUserInviteEmail(
+export function sendUserInviteEmail(
   params: SendUserInviteParams,
-): Promise<{
-  success: boolean;
-  id?: string;
-  error?: string;
-  isSimulated?: boolean;
-}> {
-  if (!resend) {
-    console.warn(
-      `[DEV] RESEND_API_KEY not configured. Simulated user invitation email for ${params.to} (${params.role}): ${params.setPassLink}`,
-    );
-    return { success: true, isSimulated: true };
-  }
-
-  try {
-    const { UserInviteEmail } = await import("@/emails/user-invite-email");
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
-      to: [params.to],
-      replyTo: DEFAULT_ADMIN_EMAIL,
-      subject:
-        "You're Invited to Join Schools Voice (Formerly Port Harcourt Schools)",
-      react: UserInviteEmail({
-        name: params.name,
-        email: params.to,
-        role: params.role,
-        inviterName: params.inviterName,
-        setPassLink: params.setPassLink,
-        expiresInHours: params.expiresInHours || 48,
-      }),
-    });
-
-    if (error) {
-      console.error("Resend error sending user invitation email:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, id: data?.id };
-  } catch (err) {
-    console.error("Failed to send user invitation email:", err);
-    return { success: false, error: "Email delivery failed" };
-  }
+): Promise<EmailResult> {
+  return deliver("team invite", {
+    to: params.to,
+    replyTo: DEFAULT_ADMIN_EMAIL,
+    subject: "You're invited to join the Schools Voice team",
+    react: UserInviteEmail({
+      name: params.name,
+      email: params.to,
+      role: params.role,
+      inviterName: params.inviterName,
+      setPassLink: params.setPassLink,
+      expiresInHours: params.expiresInHours || 48,
+    }),
+  });
 }

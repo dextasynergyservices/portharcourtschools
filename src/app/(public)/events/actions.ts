@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { generateGoogleCalendarUrl } from "@/lib/calendar";
 import {
   contactSubmissions,
@@ -11,6 +12,7 @@ import {
   nominations,
 } from "@/lib/db";
 import {
+  sendContactAcknowledgementEmail,
   sendContactNotificationEmail,
   sendEventPaymentPendingEmail,
   sendEventRegistrationConfirmedEmail,
@@ -136,15 +138,27 @@ export async function createEventPartnerInquiryAction(
       status: "new",
     });
 
-    // Notify admin team asynchronously
-    sendContactNotificationEmail({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      phone: parsed.data.phone || undefined,
-      personaType: "partner",
-      subject: `Event Partnership Inquiry from ${parsed.data.organization}`,
-      message: parsed.data.message,
-    }).catch((e) => console.error("Partner email dispatch error:", e));
+    // Notify the admin team and acknowledge the partner after responding
+    const { data } = parsed;
+    const subject = `Event Partnership Inquiry from ${data.organization}`;
+    after(() =>
+      Promise.all([
+        sendContactNotificationEmail({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || undefined,
+          personaType: "partner",
+          subject,
+          message: data.message,
+        }),
+        sendContactAcknowledgementEmail({
+          name: data.name,
+          email: data.email,
+          subject,
+          message: data.message,
+        }),
+      ]),
+    );
 
     return { success: true };
   } catch (err) {
@@ -291,7 +305,7 @@ export async function createEventRegistrationAction(
 
     if (isPaidEvent) {
       // Send payment pending email with direct payment link
-      sendEventPaymentPendingEmail({
+      const pendingEmail = {
         attendeeName: parsed.data.fullName,
         email: parsed.data.email,
         eventTitle: event.title,
@@ -302,7 +316,8 @@ export async function createEventRegistrationAction(
         totalAmount,
         paymentLink: finalPaymentLink || "#",
         registrationId: reg.id,
-      }).catch((e) => console.error("Payment pending email error:", e));
+      };
+      after(() => sendEventPaymentPendingEmail(pendingEmail));
     } else {
       // Free event: send confirmed ticket email with Google Calendar invite
       const calendarUrl = generateGoogleCalendarUrl({
@@ -313,7 +328,7 @@ export async function createEventRegistrationAction(
         endDate: event.endDate,
       });
 
-      sendEventRegistrationConfirmedEmail({
+      const confirmedEmail = {
         attendeeName: parsed.data.fullName,
         email: parsed.data.email,
         eventTitle: event.title,
@@ -325,7 +340,8 @@ export async function createEventRegistrationAction(
         totalAmount: 0,
         registrationId: reg.id,
         calendarUrl,
-      }).catch((e) => console.error("Free registration email error:", e));
+      };
+      after(() => sendEventRegistrationConfirmedEmail(confirmedEmail));
     }
 
     return {

@@ -48,7 +48,14 @@ vi.mock("@/lib/db", () => {
   };
 });
 
+// Run after() callbacks inline so post-response emails are observable
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: vi.fn((task: () => unknown) => task()),
+}));
+
 vi.mock("@/lib/email", () => ({
+  sendContactAcknowledgementEmail: vi.fn().mockResolvedValue({ success: true }),
   sendEventRegistrationConfirmedEmail: vi
     .fn()
     .mockResolvedValue({ success: true }),

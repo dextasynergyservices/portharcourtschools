@@ -490,7 +490,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                         </Label>
                         <Input
                           type="email"
-                          placeholder="info@portharcourtschools.ng"
+                          placeholder="info@schoolsvoice.com"
                           value={email.email}
                           onChange={(e) =>
                             updateEmail(email.id, "email", e.target.value)

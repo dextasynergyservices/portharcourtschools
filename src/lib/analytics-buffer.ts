@@ -9,8 +9,8 @@ import { db, pageViews } from "@/lib/db";
  * Trade-off: views still buffered when an instance shuts down are lost.
  */
 
-const FLUSH_INTERVAL_MS = 15 * 60 * 1000;
-const FLUSH_MAX_ROWS = 100;
+const FLUSH_INTERVAL_MS = 60 * 60 * 1000;
+const FLUSH_MAX_ROWS = 500;
 const RETENTION_DAYS = 365;
 const PRUNE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 

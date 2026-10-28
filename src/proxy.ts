@@ -54,11 +54,11 @@ export async function proxy(request: NextRequest) {
   // Content-Security-Policy (CSP)
   const cspHeader = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://connect.facebook.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https://images.unsplash.com https://*.r2.cloudflarestorage.com https://*.cloudflare.com https://*.r2.dev https://*.paystack.com https://*.flutterwave.com https://assets.paystack.com",
-    "connect-src 'self' https://*.upstash.io https://challenges.cloudflare.com https://api.paystack.co https://api.flutterwave.com https://*.r2.cloudflarestorage.com https://*.r2.dev",
+    "img-src 'self' data: blob: https://images.unsplash.com https://*.r2.cloudflarestorage.com https://*.cloudflare.com https://*.r2.dev https://*.paystack.com https://*.flutterwave.com https://assets.paystack.com https://www.facebook.com",
+    "connect-src 'self' https://*.upstash.io https://challenges.cloudflare.com https://www.facebook.com https://connect.facebook.net https://api.paystack.co https://api.flutterwave.com https://*.r2.cloudflarestorage.com https://*.r2.dev",
     "frame-src 'self' https://challenges.cloudflare.com https://checkout.paystack.com https://*.flutterwave.com",
     "object-src 'none'",
     "base-uri 'self'",
