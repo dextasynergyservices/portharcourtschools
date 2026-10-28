@@ -2,6 +2,7 @@
 
 import { and, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { auth } from "@/lib/auth";
 import { invalidateCache } from "@/lib/cache";
 import { generateGoogleCalendarUrl } from "@/lib/calendar";
@@ -400,7 +401,7 @@ export async function updateEventRegistrationStatusAction(
           endDate: event.endDate,
         });
 
-        sendEventRegistrationConfirmedEmail({
+        const confirmedEmail = {
           attendeeName: existing.fullName,
           email: existing.email,
           eventTitle: event.title,
@@ -412,9 +413,8 @@ export async function updateEventRegistrationStatusAction(
           totalAmount: existing.totalAmount,
           registrationId: existing.id,
           calendarUrl,
-        }).catch((e) =>
-          console.error("Confirmed status transition email error:", e),
-        );
+        };
+        after(() => sendEventRegistrationConfirmedEmail(confirmedEmail));
       }
     }
 

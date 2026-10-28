@@ -7,6 +7,12 @@ vi.mock("next/headers", () => ({
   ),
 }));
 
+// Run after() callbacks inline so post-response emails are observable
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: vi.fn((task: () => unknown) => task()),
+}));
+
 // Mock external services and database
 vi.mock("@/lib/turnstile", () => ({
   verifyTurnstileToken: vi.fn(),
@@ -14,6 +20,7 @@ vi.mock("@/lib/turnstile", () => ({
 
 vi.mock("@/lib/email", () => ({
   sendContactNotificationEmail: vi.fn(),
+  sendContactAcknowledgementEmail: vi.fn(),
 }));
 
 const { mockInsert, mockValues } = vi.hoisted(() => {
@@ -30,7 +37,10 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { submitContactFormAction } from "@/app/(public)/contact/actions";
-import { sendContactNotificationEmail } from "@/lib/email";
+import {
+  sendContactAcknowledgementEmail,
+  sendContactNotificationEmail,
+} from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 describe("Contact Action Integration — Form Submission -> DB Row -> Email Sent", () => {
@@ -89,6 +99,14 @@ describe("Contact Action Integration — Form Submission -> DB Row -> Email Sent
         name: "Dr. Amadi Okoro",
         email: "amadi.okoro@example.com",
         personaType: "school_leader",
+      }),
+    );
+
+    // Verify the submitter received an acknowledgement
+    expect(sendContactAcknowledgementEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Dr. Amadi Okoro",
+        email: "amadi.okoro@example.com",
       }),
     );
   });

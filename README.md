@@ -1,4 +1,4 @@
-# Port Harcourt Schools (`portharcourtschools.com`)
+# Port Harcourt Schools (`schoolsvoice.com`)
 
 The premier digital directory, educational intelligence portal, and community hub for schools, parents, educators, and institutional stakeholders across Port Harcourt, Rivers State, Nigeria.
 
@@ -210,7 +210,7 @@ R2_ACCOUNT_ID="your-cloudflare-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
 R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
 R2_BUCKET_NAME="portharcourtschools-media"
-R2_PUBLIC_DOMAIN="media.portharcourtschools.com"
+R2_PUBLIC_DOMAIN="pub-<your-bucket-id>.r2.dev"
 
 # Cloudflare Turnstile (Anti-Bot)
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="1x00000000000000000000AA"
@@ -218,8 +218,8 @@ TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 
 # Resend Transactional Email
 RESEND_API_KEY="re_sample_api_key"
-EMAIL_FROM="Port Harcourt Schools <notifications@portharcourtschools.com>"
-ADMIN_EMAIL="admin@portharcourtschools.com"
+EMAIL_FROM="Schools Voice <hello@schoolsvoice.com>"
+ADMIN_NOTIFICATION_EMAIL="hello@schoolsvoice.com"
 ```
 
 ### 4. Database Setup & Migrations

@@ -91,7 +91,7 @@ export default function AdminLoginPage() {
                   autoComplete="email"
                   inputMode="email"
                   autoCapitalize="none"
-                  placeholder="admin@portharcourtschools.com"
+                  placeholder="admin@schoolsvoice.com"
                   className="h-11 border-[#D9DEEC] bg-white focus-visible:ring-[#184098]"
                 />
               </div>

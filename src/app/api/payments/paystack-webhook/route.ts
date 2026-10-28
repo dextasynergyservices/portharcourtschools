@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { eq } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
+import { after, type NextRequest, NextResponse } from "next/server";
 import { generateGoogleCalendarUrl } from "@/lib/calendar";
 import { db, eventRegistrations, events } from "@/lib/db";
 import { sendEventRegistrationConfirmedEmail } from "@/lib/email";
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
             endDate: event.endDate,
           });
 
-          sendEventRegistrationConfirmedEmail({
+          const confirmedEmail = {
             attendeeName: registration.fullName,
             email: registration.email,
             eventTitle: event.title,
@@ -114,9 +114,8 @@ export async function POST(req: NextRequest) {
             totalAmount: registration.totalAmount,
             registrationId: registration.id,
             calendarUrl,
-          }).catch((e) =>
-            console.error("Paystack webhook confirmation email error:", e),
-          );
+          };
+          after(() => sendEventRegistrationConfirmedEmail(confirmedEmail));
         }
       }
     }

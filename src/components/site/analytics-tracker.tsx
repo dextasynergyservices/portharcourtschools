@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const SESSION_KEY = "sv_analytics_sid";
+const CLICK_ID_PARAMS = ["fbclid", "gclid", "msclkid", "ttclid", "twclid"];
 
 function getOrCreateSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -38,10 +39,13 @@ export function AnalyticsTracker() {
       }
     }
 
+    // Drop per-click ad IDs (fbclid etc.) so every ad visit doesn't become its own "page"
+    const params = new URLSearchParams(searchParams?.toString());
+    for (const key of CLICK_ID_PARAMS) params.delete(key);
+    const query = params.toString();
+
     // Avoid double-tracking identical path & query
-    const fullPath = searchParams?.toString()
-      ? `${pathname}?${searchParams.toString()}`
-      : pathname;
+    const fullPath = query ? `${pathname}?${query}` : pathname;
 
     if (
       !pathname ||

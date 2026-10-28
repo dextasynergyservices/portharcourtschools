@@ -94,7 +94,7 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      url: `https://portharcourtschools.com/events/${event.slug}`,
+      url: `https://www.schoolsvoice.com/events/${event.slug}`,
       images: event.coverImage ? [{ url: event.coverImage }] : undefined,
     },
     twitter: {
@@ -176,14 +176,14 @@ export default async function EventDetailPage({ params }: EventPageProps) {
     organizer: {
       "@type": "Organization",
       name: "PortHarcourtSchools / EdFocus Africa",
-      url: "https://portharcourtschools.com",
+      url: "https://www.schoolsvoice.com",
     },
     offers: event.isPaid
       ? {
           "@type": "Offer",
           url:
             event.paymentLink ||
-            `https://portharcourtschools.com/events/${event.slug}`,
+            `https://www.schoolsvoice.com/events/${event.slug}`,
           price: String(event.price || 0),
           priceCurrency: "NGN",
           availability: "https://schema.org/InStock",
