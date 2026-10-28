@@ -102,7 +102,7 @@ export default async function AboutPage() {
   const rawUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXTAUTH_URL ||
-    "https://portharcourtschools.com";
+    "https://www.schoolsvoice.com";
   const siteUrl = rawUrl.replace(/\/$/, "");
 
   const jsonLd = {

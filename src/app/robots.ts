@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   const rawUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXTAUTH_URL ||
-    "https://portharcourtschools.com";
+    "https://www.schoolsvoice.com";
   const baseUrl = rawUrl.replace(/\/$/, "");
 
   return {

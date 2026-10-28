@@ -1,8 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { contactSubmissions, db } from "@/lib/db";
-import { sendContactNotificationEmail } from "@/lib/email";
+import {
+  sendContactAcknowledgementEmail,
+  sendContactNotificationEmail,
+} from "@/lib/email";
 import { checkContactRateLimit, getClientIp } from "@/lib/ratelimit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -73,22 +77,27 @@ export async function submitContactFormAction(formData: FormData): Promise<{
       status: "new",
     });
 
-    // 3. Dispatch automated email notification to admin desk
-    try {
-      await sendContactNotificationEmail({
-        name: parsed.data.name,
-        email: parsed.data.email,
-        phone: parsed.data.phone,
-        personaType: parsed.data.personaType,
-        subject: parsed.data.subject,
-        message: parsed.data.message,
-      });
-    } catch (emailErr) {
-      console.warn(
-        "Failed to dispatch email alert, but submission was saved:",
-        emailErr,
-      );
-    }
+    // 3. Alert the admin desk and send the submitter a receipt once the
+    // response is out (after() keeps the function alive until both finish)
+    const { data } = parsed;
+    after(() =>
+      Promise.all([
+        sendContactNotificationEmail({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          personaType: data.personaType,
+          subject: data.subject,
+          message: data.message,
+        }),
+        sendContactAcknowledgementEmail({
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+        }),
+      ]),
+    );
 
     return { success: true };
   } catch (err) {

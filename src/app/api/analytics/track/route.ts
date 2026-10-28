@@ -43,6 +43,7 @@ function normalizeReferrer(referrer: string | null): {
     const url = new URL(referrer);
     // Ignore internal navigation referrer
     if (
+      url.hostname.includes("schoolsvoice") ||
       url.hostname.includes("portharcourtschools") ||
       url.hostname.includes("localhost")
     ) {

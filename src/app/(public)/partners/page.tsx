@@ -88,7 +88,7 @@ const DEFAULT_PARTNERS = [
     id: "default-4",
     name: "Classroom Champions Initiative",
     logo: "/images/classroom_champions_emblem.jpg",
-    website: "https://portharcourtschools.com/events",
+    website: "https://www.schoolsvoice.com/events",
     tier: "strategic",
     description:
       "Honoring, mentoring, and publishing outstanding educators nominated directly by the school communities they serve.",
