@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, like, lt, lte, or, sql } from "drizzle-orm";
+import { flushPageViews, pruneOldPageViews } from "@/lib/analytics-buffer";
 import { db, pageViews } from "@/lib/db";
 
 export type AnalyticsPeriodPreset =
@@ -290,6 +291,15 @@ export async function getAnalyticsSummary(
   ];
 
   try {
+    // The database is awake for this request anyway: write this instance's
+    // buffered page views and prune old rows
+    try {
+      await flushPageViews();
+      await pruneOldPageViews();
+    } catch (flushError) {
+      console.warn("[getAnalyticsSummary] Page view flush failed:", flushError);
+    }
+
     // 1. Current Period Totals
     const [currentTotals] = await db
       .select({

@@ -1,42 +1,14 @@
 import type { NextConfig } from "next";
+import { OPTIMIZED_IMAGE_HOSTS } from "./src/lib/image-hosts";
 
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.r2.cloudflarestorage.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.r2.dev",
-      },
-      {
-        protocol: "https",
-        hostname: "**.cloudflare.com",
-      },
-      {
-        protocol: "https",
-        hostname: "drive.google.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-      {
-        protocol: "http",
-        hostname: "**",
-      },
-    ],
+    // Only these hosts may use (and spend quota on) Vercel image optimization
+    remotePatterns: OPTIMIZED_IMAGE_HOSTS.map((hostname) => ({
+      protocol: "https",
+      hostname,
+    })),
   },
   async redirects() {
     return [

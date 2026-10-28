@@ -73,7 +73,7 @@ export default async function AdminPostsPage({
     where: whereClause,
     with: {
       category: true,
-      author: true,
+      author: { columns: { id: true, name: true } },
     },
     orderBy: [
       asc(posts.sortOrder),

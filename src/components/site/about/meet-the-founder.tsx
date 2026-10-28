@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { FadeIn } from "@/components/site/motion-wrapper";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 function ArrowDiagonal({
   className = "size-3.5 ml-1",
@@ -115,6 +116,7 @@ export function MeetTheFounder({ data }: { data?: AboutFounderData }) {
                 <div className="relative aspect-square w-full bg-[#f8fafc] overflow-hidden">
                   <Image
                     src={image}
+                    unoptimized={!canOptimizeImage(image)}
                     alt={imageAlt}
                     fill
                     sizes="(max-width: 1024px) 100vw, 40vw"

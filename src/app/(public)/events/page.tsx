@@ -12,7 +12,9 @@ import {
   StaggerItem,
 } from "@/components/site/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
-import { db, events, programmes } from "@/lib/db";
+import { getOrSetCache } from "@/lib/cache";
+import { db, events, eventTypeEnum, programmes } from "@/lib/db";
+import { canOptimizeImage } from "@/lib/image-hosts";
 
 export const revalidate = 180;
 
@@ -73,18 +75,24 @@ export default async function EventsAndProgrammesPage({
     sections.hero?.subtitle ||
     "From our flagship education summit to ongoing professional development masterclasses, this is where PortHarcourtSchools convenes, honors, and equips educators across Rivers State.";
 
-  // 1. Fetch published events
-  const eventConditions = [eq(events.status, "published")];
-  if (type && type !== "all") {
-    eventConditions.push(
-      eq(events.type, type as "summit" | "masterclass" | "workshop" | "awards"),
-    );
-  }
+  // 1. Fetch published events (searchParams makes this page dynamic, so cache explicitly)
+  const eventType = eventTypeEnum.enumValues.find((t) => t === type);
 
-  const allPublishedEvents = await db.query.events.findMany({
-    where: and(...eventConditions),
-    orderBy: [asc(events.sortOrder), desc(events.startDate)],
-  });
+  const allPublishedEvents = await getOrSetCache(
+    `events:published:${eventType || "all"}`,
+    ["events"],
+    () => {
+      const eventConditions = [eq(events.status, "published")];
+      if (eventType) {
+        eventConditions.push(eq(events.type, eventType));
+      }
+      return db.query.events.findMany({
+        where: and(...eventConditions),
+        orderBy: [asc(events.sortOrder), desc(events.startDate)],
+      });
+    },
+    600,
+  );
 
   // Flagship spotlight events: prioritize events explicitly marked isFeatured: true
   // Fallback to summit format or most recent event if none are explicitly marked
@@ -101,10 +109,16 @@ export default async function EventsAndProgrammesPage({
         : allPublishedEvents.slice(0, 1);
 
   // 2. Fetch published programmes
-  const allProgrammes = await db.query.programmes.findMany({
-    where: eq(programmes.status, "published"),
-    orderBy: [desc(programmes.createdAt)],
-  });
+  const allProgrammes = await getOrSetCache(
+    "programmes:published",
+    ["programmes"],
+    () =>
+      db.query.programmes.findMany({
+        where: eq(programmes.status, "published"),
+        orderBy: [desc(programmes.createdAt)],
+      }),
+    600,
+  );
 
   const activeType = type || "all";
 
@@ -204,6 +218,7 @@ export default async function EventsAndProgrammesPage({
                   <div className="relative h-48 w-full bg-[#EEF2FA] overflow-hidden">
                     <Image
                       src={ev.coverImage || "/images/ph_hero_classroom.jpg"}
+                      unoptimized={!canOptimizeImage(ev.coverImage)}
                       alt={ev.title}
                       fill
                       loading="lazy"
